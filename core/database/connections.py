@@ -13,12 +13,25 @@ class DatabaseCORE:
     __DB_PORT = os.getenv("DB_PORT")
 
     @property
+    def database_env(self) -> dict:
+        configurate = {
+            "DB_NAME": self.__DB_NAME,
+            "DB_USERNAME": self.__DB_USERNAME,
+            "DB_PASSWORD": self.__DB_PASSWORD,
+            "DB_HOST": self.__DB_HOST,
+            "DB_PORT": self.__DB_PORT,
+        }
+        return configurate
+
+    @property
     def _db_url(self):
         return f"postgresql+asyncpg://{self.__DB_USERNAME}:{self.__DB_PASSWORD}@{self.__DB_HOST}:{self.__DB_PORT}/{self.__DB_NAME}"
 
     @property
     def _engine(self):
-        return create_async_engine(self._db_url, echo=True)
+        return create_async_engine(
+            self._db_url, echo=True, pool_size=10, max_overflow=5
+        )
 
     @property
     def get_session_connection(self):
@@ -29,5 +42,13 @@ core = DatabaseCORE()
 
 
 async def session():
+    connection = core.get_session_connection()
+    try:
+        yield connection
+    finally:
+        await connection.close()
+
+
+async def session_transaction():
     async with core.get_session_connection() as conn:
         yield conn
