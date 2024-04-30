@@ -1,14 +1,7 @@
-from fastapi import FastAPI, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text
-from typing import Annotated
-from core.database.connections import session
+from fastapi import FastAPI
+
+from src.presentation.cinema_routers import cinema_router
 
 app = FastAPI()
 
-
-@app.get("/")
-async def test(sess: Annotated[AsyncSession, Depends(session)]):
-    result = await sess.execute(text("SELECT VERSION()"))
-
-    return result.scalars().all()
+app.include_router(cinema_router)
