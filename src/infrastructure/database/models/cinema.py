@@ -26,4 +26,4 @@ class Cinema(Base):
     street: Mapped[str] = mapped_column(String(150))
     house_number: Mapped[int]
 
-    city: Mapped["City"] = relationship(back_populates="cinemas", lazy="selectin")
+    city: Mapped["City"] = relationship(back_populates="cinemas")
