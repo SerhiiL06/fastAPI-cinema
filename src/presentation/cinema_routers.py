@@ -9,24 +9,6 @@ from src.service.cinema_service import CinemaService
 cinema_router = APIRouter(tags=["cinema"])
 
 
-@cinema_router.post("/create")
-async def post_city(
-    data: CityDTO,
-    service: Annotated[CinemaService, Depends()],
-    session: Annotated[session_transaction, Depends()],
-):
-    return await service.add_city(data, session)
-
-
-@cinema_router.post("/cinema")
-async def post_cinema(
-    data: CinemaDTO,
-    service: Annotated[CinemaService, Depends()],
-    session: Annotated[session_transaction, Depends()],
-):
-    return await service.add_cinema(data, session)
-
-
 @cinema_router.get("/cinema")
 async def fetch_cinemas(
     service: Annotated[CinemaService, Depends()],
@@ -42,6 +24,24 @@ async def detail_cinema(
     session: Annotated[session_transaction, Depends()],
 ):
     return await service.get_cinema(cinema_id, session)
+
+
+@cinema_router.post("/create")
+async def create_city(
+    data: CityDTO,
+    service: Annotated[CinemaService, Depends()],
+    session: Annotated[session_transaction, Depends()],
+):
+    return await service.add_city(data, session)
+
+
+@cinema_router.post("/cinema")
+async def create_cinema(
+    data: CinemaDTO,
+    service: Annotated[CinemaService, Depends()],
+    session: Annotated[session_transaction, Depends()],
+):
+    return await service.add_cinema(data, session)
 
 
 @cinema_router.delete("/cinema/{cinema_id}")
