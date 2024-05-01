@@ -7,18 +7,12 @@ from src.infrastructure.database.models.cinema import Cinema
 from src.presentation.mappings.cinema import CinemaDTO, ShortCinemaDTO
 
 
-def convert_cinema_dto_to_entity(dto: CinemaDTO) -> Cinema:
-
-    if not re.findall(r"^\w+@example|gmail|mail.com", dto.email):
-        raise HTTPException(400, "Email error")
-
-    if not re.findall(r"\d{10}", dto.phone_number):
-        raise HTTPException(400, "Phone number error")
+def cinema_dto_to_entity(dto: CinemaDTO) -> Cinema:
 
     return Cinema(**asdict(dto))
 
 
-def convert_cinema_entity_to_dto(
+def cinema_entity_to_dto(
     entity: list[Cinema] | Cinema,
 ) -> list[CinemaDTO] | CinemaDTO:
 
@@ -28,6 +22,7 @@ def convert_cinema_entity_to_dto(
         for ent in entity:
             list_dtos.append(
                 ShortCinemaDTO(
+                    id=ent.id,
                     title=ent.title,
                     city=ent.city.title,
                     street=ent.street,

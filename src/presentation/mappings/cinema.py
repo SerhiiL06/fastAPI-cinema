@@ -7,7 +7,17 @@ class CityDTO:
 
 
 @dataclass
+class UpdateCinemaDTO:
+    title: str = None
+    city: str = None
+    street: str = None
+    house_number: int = None
+    phone_number: str = None
+
+
+@dataclass
 class ShortCinemaDTO:
+    id: int
     title: str
     city: str
     street: str
@@ -16,11 +26,6 @@ class ShortCinemaDTO:
 
 
 @dataclass
-class CinemaDTO:
-    title: str
+class CinemaDTO(ShortCinemaDTO):
     description: str
-    phone_number: str
     email: str
-    city_id: int
-    street: str
-    house_number: int

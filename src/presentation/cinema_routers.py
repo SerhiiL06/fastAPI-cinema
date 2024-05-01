@@ -3,10 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from src.infrastructure.database.connections import session_transaction
-from src.presentation.mappings.cinema import CinemaDTO, CityDTO
+from src.presentation.mappings.cinema import CinemaDTO, CityDTO, UpdateCinemaDTO
 from src.service.cinema_service import CinemaService
 
-cinema_router = APIRouter()
+cinema_router = APIRouter(tags=["cinema"])
 
 
 @cinema_router.post("/create")
@@ -51,3 +51,13 @@ async def drop_cinema(
     session: Annotated[session_transaction, Depends()],
 ):
     return await service.destroy_cinema(cinema_id, session)
+
+
+@cinema_router.patch("/cinema/{cinema_id}")
+async def update_cinema(
+    cinema_id: int,
+    data: UpdateCinemaDTO,
+    service: Annotated[CinemaService, Depends()],
+    session: Annotated[session_transaction, Depends()],
+):
+    return await service.update_cinema(cinema_id, data, session)

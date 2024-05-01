@@ -1,13 +1,12 @@
 from typing import Optional
 
 from fastapi import HTTPException
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from src.infrastructure.database.models.cinema import Cinema, City
-from src.presentation.mappings.cinema import CinemaDTO, ShortCinemaDTO
 
 from .abstract import AbstractRepository
 
@@ -33,7 +32,11 @@ class CityRepository:
 class CinemaRepository(CityRepository, AbstractRepository):
 
     async def find_all(self, session: AsyncSession) -> list[Cinema]:
-        query = select(Cinema).options(joinedload(Cinema.city))
+        query = (
+            select(Cinema)
+            .options(joinedload(Cinema.city))
+            .order_by(Cinema.title.asc(), Cinema.id.desc())
+        )
         result = await session.execute(query)
         return result.scalars().all()
 
@@ -59,8 +62,13 @@ class CinemaRepository(CityRepository, AbstractRepository):
 
         return cinema
 
-    def update(self, obj_id: int, data: dict):
-        return super().update(obj_id, data)
+    async def update(self, entity_id: int, data: dict, session: AsyncSession) -> None:
+        query = update(Cinema).where(Cinema.id == entity_id).values(**data)
+        try:
+            await session.execute(query)
+            await session.commit()
+        except Exception:
+            raise HTTPException(400, "Something went wrong!")
 
     async def delete(self, obj_id: int, session: AsyncSession) -> None:
         query = await self.find_by_id(obj_id, session)
