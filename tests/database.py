@@ -1,14 +1,23 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-
-DB_URL = "sqlite+aiosqlite:///./test.db"
-
-test_engine = create_async_engine(url=DB_URL)
+import os
+from dotenv import load_dotenv
 
 
-session = async_sessionmaker(test_engine, class_=AsyncSession)
+load_dotenv()
+
+DB_NAME = os.getenv("DB_TEST_NAME")
+DB_USERNAME = os.getenv("DB_TEST_USERNAME")
+DB_PASSWORD = os.getenv("DB_TEST_PASSWORD")
+DB_HOST = os.getenv("DB_TEST_HOST")
+DB_PORT = os.getenv("DB_TEST_PORT")
 
 
-async def test_session():
-    async with session() as connect:
-        yield connect
+DB_URL = (
+    f"postgresql+asyncpg://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+)
+
+test_engine = create_async_engine(url=DB_URL, echo=True)
+
+
+session = async_sessionmaker(test_engine, class_=AsyncSession, autoflush=False)

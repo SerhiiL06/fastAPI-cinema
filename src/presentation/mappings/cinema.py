@@ -26,6 +26,11 @@ class ShortCinemaDTO:
 
 
 @dataclass
-class CinemaDTO(ShortCinemaDTO):
+class CinemaDTO:
+    title: str
+    city_id: int
+    street: str
+    house_number: int
+    phone_number: str
     description: str
     email: str
