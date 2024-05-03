@@ -10,7 +10,7 @@ class City(Base):
     __tablename__ = "cities"
     title: Mapped[str] = mapped_column(unique=True)
 
-    cinemas: Mapped[List["Cinema"]] = relationship(back_populates="city", cascade="")
+    cinemas: Mapped[List["Cinema"]] = relationship(back_populates="city")
 
 
 class Cinema(Base):

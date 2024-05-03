@@ -3,7 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from src.infrastructure.database.connections import session_transaction
-from src.presentation.mappings.cinema import CinemaDTO, CityDTO, UpdateCinemaDTO
+from src.presentation.mappings.cinema import (CinemaDTO, CityDTO,
+                                              UpdateCinemaDTO)
 from src.service.cinema_service import CinemaService
 
 cinema_router = APIRouter(tags=["cinema"])
