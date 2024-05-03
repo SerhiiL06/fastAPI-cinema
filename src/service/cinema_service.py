@@ -30,12 +30,12 @@ class CinemaService:
 
     async def get_cinema_list(self, session: AsyncSession):
         entities = await self.repo.find_all(session)
-        return cinema_entity_to_dto(entities)
+        return {"cinemas_list": cinema_entity_to_dto(entities)}
 
     async def get_cinema(self, entity_id: int, session: AsyncSession):
         cinema = await self.repo.find_by_id(entity_id, session)
 
-        return cinema
+        return {"cinema": cinema}
 
     async def destroy_cinema(self, entity_id: int, session: AsyncSession):
         await self.repo.delete(entity_id, session)
@@ -49,7 +49,11 @@ class CinemaService:
         if not cleared_data:
             raise HTTPException(400, "No data to update")
 
-        await self.repo.update(entity_id, cleared_data, session)
+        q = await self.repo.update(entity_id, cleared_data, session)
+
+        print(q)
+
+        return q
 
     @classmethod
     def clear_none(cls, data: dict):

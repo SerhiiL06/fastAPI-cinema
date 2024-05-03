@@ -6,7 +6,7 @@ from alembic.command import downgrade, upgrade
 from alembic.config import Config as AlembicConfig
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Engine, create_engine, text
-from sqlalchemy.exc import ProgrammingError
+from sqlalchemy.exc import OperationalError, ProgrammingError
 
 from main import app
 from src.infrastructure.database.connections import session_transaction
@@ -32,12 +32,12 @@ def postgres_template_db():
     return test_core.test_db_url_template()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope="session")
 def engine(postgres_template_db):
     return create_engine(postgres_template_db)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope="session")
 async def connection(engine: Engine, postgres_template_db: str):
 
     engine = engine.execution_options(isolation_level="AUTOCOMMIT")

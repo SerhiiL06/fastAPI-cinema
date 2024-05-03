@@ -63,10 +63,13 @@ class CinemaRepository(CityRepository, AbstractRepository):
         return cinema
 
     async def update(self, entity_id: int, data: dict, session: AsyncSession) -> None:
-        query = update(Cinema).where(Cinema.id == entity_id).values(**data)
+        query = (
+            update(Cinema).where(Cinema.id == entity_id).values(**data).returning("*")
+        )
         try:
-            await session.execute(query)
+            updated = await session.execute(query)
             await session.commit()
+            return updated.mappings().all()
         except Exception:
             raise HTTPException(400, "Something went wrong!")
 
