@@ -37,6 +37,7 @@ class CinemaRepository(CityRepository, AbstractRepository):
             .options(joinedload(Cinema.city))
             .order_by(Cinema.title.asc(), Cinema.id.desc())
         )
+
         result = await session.execute(query)
         return result.scalars().all()
 

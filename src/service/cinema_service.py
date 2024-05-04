@@ -30,6 +30,7 @@ class CinemaService:
 
     async def get_cinema_list(self, session: AsyncSession):
         entities = await self.repo.find_all(session)
+
         return {"cinemas_list": cinema_entity_to_dto(entities)}
 
     async def get_cinema(self, entity_id: int, session: AsyncSession):
@@ -50,8 +51,6 @@ class CinemaService:
             raise HTTPException(400, "No data to update")
 
         q = await self.repo.update(entity_id, cleared_data, session)
-
-        print(q)
 
         return q
 
