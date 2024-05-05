@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager, contextmanager
 
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
@@ -38,6 +39,19 @@ class DatabaseCORE:
     @property
     def get_session_connection(self):
         return async_sessionmaker(self._engine, class_=AsyncSession, autoflush=False)
+
+    @asynccontextmanager
+    async def session_transaction(self):
+        async with self.get_session_connection() as conn:
+            yield conn
+
+    @asynccontextmanager
+    async def session(self):
+        connection = self.get_session_connection()
+        try:
+            yield connection
+        finally:
+            await connection.close()
 
 
 core = DatabaseCORE()

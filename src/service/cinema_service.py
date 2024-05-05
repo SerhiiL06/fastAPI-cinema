@@ -11,46 +11,42 @@ from src.service.validators.cinema_validate import cinema_validate
 
 
 class CinemaService:
-    def __init__(self) -> None:
-        self.repo = CinemaRepository()
+    def __init__(self, repo: CinemaRepository) -> None:
+        self.repo = repo
 
-    async def add_city(self, data: CityDTO, session: AsyncSession):
+    async def add_city(self, data: CityDTO):
 
-        city_id = await self.repo.create_city(asdict(data), session)
+        city_id = await self.repo.create_city(asdict(data))
 
         return {"city": city_id}
 
-    async def add_cinema(self, data: CinemaDTO, session: AsyncSession) -> dict:
+    async def add_cinema(self, data: CinemaDTO) -> dict:
 
-        cinema_id = await self.repo.create(
-            cinema_dto_to_entity(cinema_validate(data)), session
-        )
+        cinema_id = await self.repo.create(cinema_dto_to_entity(cinema_validate(data)))
 
         return {"id": cinema_id}
 
-    async def get_cinema_list(self, session: AsyncSession):
-        entities = await self.repo.find_all(session)
+    async def get_cinema_list(self):
+        entities = await self.repo.find_all()
 
         return {"cinemas_list": cinema_entity_to_dto(entities)}
 
-    async def get_cinema(self, entity_id: int, session: AsyncSession):
-        cinema = await self.repo.find_by_id(entity_id, session)
+    async def get_cinema(self, entity_id: int):
+        cinema = await self.repo.find_by_id(entity_id)
 
         return {"cinema": cinema}
 
-    async def destroy_cinema(self, entity_id: int, session: AsyncSession):
-        await self.repo.delete(entity_id, session)
+    async def destroy_cinema(self, entity_id: int):
+        await self.repo.delete(entity_id)
 
-    async def update_cinema(
-        self, entity_id: int, data: CinemaDTO, session: AsyncSession
-    ):
+    async def update_cinema(self, entity_id: int, data: CinemaDTO):
 
         cleared_data = self.clear_none(asdict(data))
 
         if not cleared_data:
             raise HTTPException(400, "No data to update")
 
-        q = await self.repo.update(entity_id, cleared_data, session)
+        q = await self.repo.update(entity_id, cleared_data)
 
         return q
 
