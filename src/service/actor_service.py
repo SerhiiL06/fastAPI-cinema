@@ -23,6 +23,9 @@ class ActorService:
 
         return {"id": actor_id}
 
+    async def delete_actor(self, actor_id: int) -> None:
+        await self.repo.delete(actor_id)
+
     @classmethod
     def _actor_validate(cls, actor: CreateActorDto) -> CreateActorDto:
 

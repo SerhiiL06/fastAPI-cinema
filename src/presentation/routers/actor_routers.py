@@ -34,3 +34,12 @@ async def create_actor(
     service: ActorService = Depends(Provide[Container.actor_service]),
 ):
     return await service.add_actor(data)
+
+
+@actor_routers.delete("/actors/{actor_id}")
+@inject
+async def drop_actor(
+    actor_id: int,
+    service: ActorService = Depends(Provide[Container.actor_service]),
+):
+    return await service.delete_actor(actor_id)

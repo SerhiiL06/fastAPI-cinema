@@ -1,6 +1,8 @@
+import os
 from logging.config import fileConfig
 
 from alembic import context
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
 from src.infrastructure.database.models.base import Base
@@ -8,17 +10,20 @@ from src.infrastructure.database.models.cinema import Cinema, City
 from src.infrastructure.database.models.movie import *
 from src.presentation.dependency import Container
 
+load_dotenv()
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 
 config = context.config
 section = config.config_ini_section
-core = Container.db()
-config.set_section_option(section, "DB_NAME", core.database_env.get("DB_NAME"))
-config.set_section_option(section, "DB_USERNAME", core.database_env.get("DB_USERNAME"))
-config.set_section_option(section, "DB_PASSWORD", core.database_env.get("DB_PASSWORD"))
-config.set_section_option(section, "DB_HOST", core.database_env.get("DB_HOST"))
-config.set_section_option(section, "DB_PORT", core.database_env.get("DB_PORT"))
+core = Container
+
+config.set_section_option(section, "DB_NAME", os.getenv("DB_NAME"))
+config.set_section_option(section, "DB_USERNAME", os.getenv("DB_USERNAME"))
+config.set_section_option(section, "DB_PASSWORD", os.getenv("DB_PASSWORD"))
+config.set_section_option(section, "DB_HOST", os.getenv("DB_HOST"))
+config.set_section_option(section, "DB_PORT", os.getenv("DB_PORT"))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

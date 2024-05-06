@@ -6,21 +6,19 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base
 
 
-class Category(Base):
-    __tablename__ = "categories"
+class Genre(Base):
+    __tablename__ = "genres"
 
     title: Mapped[str] = mapped_column(String(30), unique=True)
 
     movies: Mapped[list["Movie"]] = relationship(
-        secondary="movies_category", back_populates="categories"
+        secondary="movies_genre", back_populates="genres"
     )
 
 
-class MovieCategory(Base):
-    __tablename__ = "movies_category"
-    category_id: Mapped[int] = mapped_column(
-        ForeignKey("categories.id"), primary_key=True
-    )
+class MovieGenre(Base):
+    __tablename__ = "movies_genre"
+    genre_id: Mapped[int] = mapped_column(ForeignKey("genres.id"), primary_key=True)
     movie_id: Mapped[int] = mapped_column(ForeignKey("movies.id"), primary_key=True)
 
 
@@ -70,8 +68,8 @@ class Movie(Base):
         secondary="movies_actors", back_populates="movies"
     )
 
-    categories: Mapped[list["Category"]] = relationship(
-        secondary="movies_category", back_populates="movies"
+    genres: Mapped[list["Genre"]] = relationship(
+        secondary="movies_genre", back_populates="movies"
     )
 
     country: Mapped["Country"] = relationship(back_populates="movies")

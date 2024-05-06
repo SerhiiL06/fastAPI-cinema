@@ -1,3 +1,6 @@
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
 from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
                                     create_async_engine)
 
@@ -29,16 +32,20 @@ class DatabaseCORE:
 
     @property
     def _engine(self):
-        return create_async_engine(self._db_url, pool_size=10, max_overflow=5)
+        return create_async_engine(
+            self._db_url, echo=True, pool_size=10, max_overflow=5
+        )
 
     def session_factory(self) -> async_sessionmaker:
         return async_sessionmaker(self._engine, class_=AsyncSession, autoflush=False)
 
-    async def session_transaction(self):
+    @asynccontextmanager
+    async def session_transaction(self) -> AsyncGenerator:
         async with self.get_session_connection() as conn:
             yield conn
 
-    async def session(self):
+    @asynccontextmanager
+    async def session(self) -> AsyncGenerator:
         connection = self.get_session_connection()
         try:
             yield connection
