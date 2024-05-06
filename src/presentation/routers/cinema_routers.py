@@ -1,9 +1,6 @@
-from typing import Annotated
-
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 
-from src.infrastructure.database.connections import session_transaction
 from src.presentation.dependency import Container
 from src.presentation.mappings.cinema import (CinemaDTO, CityDTO,
                                               UpdateCinemaDTO)
@@ -51,7 +48,6 @@ async def create_cinema(
 @inject
 async def drop_cinema(
     cinema_id: int,
-    session: Annotated[session_transaction, Depends()],
     service: CinemaService = Depends(Provide[Container.cinema_service]),
 ):
     return await service.destroy_cinema(cinema_id)

@@ -52,6 +52,7 @@ class CinemaRepository(CityRepository, AbstractRepository):
 
         if city is None:
             raise HTTPException(404, "city with this id doesn't exists")
+
         async with self.session() as conn:
             cinema.city = city
             conn.add(cinema)

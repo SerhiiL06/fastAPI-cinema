@@ -1,3 +1,4 @@
+import re
 from dataclasses import asdict
 
 from fastapi import HTTPException
@@ -7,7 +8,6 @@ from src.presentation.mappings.cinema import CinemaDTO, CityDTO
 from src.repository.cinema_repository import CinemaRepository
 from src.repository.converters.cinema import (cinema_dto_to_entity,
                                               cinema_entity_to_dto)
-from src.service.validators.cinema_validate import cinema_validate
 
 
 class CinemaService:
@@ -22,7 +22,8 @@ class CinemaService:
 
     async def add_cinema(self, data: CinemaDTO) -> dict:
 
-        cinema_id = await self.repo.create(cinema_dto_to_entity(cinema_validate(data)))
+        validate_data = self.cinema_validate(data)
+        cinema_id = await self.repo.create(cinema_dto_to_entity(validate_data))
 
         return {"id": cinema_id}
 
@@ -49,6 +50,21 @@ class CinemaService:
         q = await self.repo.update(entity_id, cleared_data)
 
         return q
+
+    @classmethod
+    def cinema_validate(dto: CinemaDTO):
+        exception_list = {"errors": {}}
+
+        if not re.findall(r"^\w+@example|gmail|mail.com", dto.email):
+            exception_list["errors"]["email"] = "invalid email pattern"
+
+        if not re.findall(r"\d{10}", dto.phone_number):
+            exception_list["errors"]["phone_number"] = "invalid phone number pattern"
+
+        if exception_list.get("errors"):
+            raise HTTPException(400, exception_list)
+
+        return dto
 
     @classmethod
     def clear_none(cls, data: dict):

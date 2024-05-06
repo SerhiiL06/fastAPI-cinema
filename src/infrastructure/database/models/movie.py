@@ -48,6 +48,7 @@ class Actor(Base):
     last_name: Mapped[str] = mapped_column(String(30))
     birth_day: Mapped[date]
     country_id: Mapped[int] = mapped_column(ForeignKey("countries.id"))
+
     movies: Mapped[list["Movie"]] = relationship(
         "Movie", secondary="movies_actors", back_populates="actors"
     )

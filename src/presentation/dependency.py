@@ -9,14 +9,22 @@ from src.service.cinema_service import CinemaService
 
 class Container(containers.DeclarativeContainer):
 
-    db = providers.Singleton(DatabaseCORE)
-
+    config = providers.Configuration()
+    db = providers.Singleton(
+        DatabaseCORE,
+        db_name=config.db_name,
+        username=config.db_username,
+        password=config.db_password,
+        host=config.db_host,
+        port=config.db_port,
+    )
     cinema_repo = providers.Factory(
-        CinemaRepository, session=db.provided.session_transaction
+        CinemaRepository, session=db.provided.session_factory
     )
     cinema_service = providers.Factory(CinemaService, repo=cinema_repo)
 
     actor_repo = providers.Factory(
-        ActorRepository, session=db.provided.session_transaction
+        ActorRepository,
+        session=db.provided.session_factory,
     )
     actor_service = providers.Factory(ActorService, repository=actor_repo)
