@@ -4,11 +4,10 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 
 from src.infrastructure.database.connections import session_transaction
-from src.presentation.mappings.cinema import CinemaDTO, CityDTO, UpdateCinemaDTO
-from src.repository.cinema_repository import CinemaRepository
-from src.service.cinema_service import CinemaService
-
 from src.presentation.dependency import Container
+from src.presentation.mappings.cinema import (CinemaDTO, CityDTO,
+                                              UpdateCinemaDTO)
+from src.service.cinema_service import CinemaService
 
 cinema_router = APIRouter(tags=["cinema"])
 
@@ -16,7 +15,7 @@ cinema_router = APIRouter(tags=["cinema"])
 @cinema_router.get("/cinemas")
 @inject
 async def fetch_cinemas(
-    service: CinemaService = Depends(Provide[Container.service]),
+    service: CinemaService = Depends(Provide[Container.cinema_service]),
 ):
     return await service.get_cinema_list()
 
@@ -25,7 +24,7 @@ async def fetch_cinemas(
 @inject
 async def detail_cinema(
     cinema_id: int,
-    service: CinemaService = Depends(Provide[Container.service]),
+    service: CinemaService = Depends(Provide[Container.cinema_service]),
 ):
     return await service.get_cinema(cinema_id)
 
@@ -34,7 +33,7 @@ async def detail_cinema(
 @inject
 async def create_city(
     data: CityDTO,
-    service: CinemaService = Depends(Provide[Container.service]),
+    service: CinemaService = Depends(Provide[Container.cinema_service]),
 ):
     return await service.add_city(data)
 
@@ -43,7 +42,7 @@ async def create_city(
 @inject
 async def create_cinema(
     data: CinemaDTO,
-    service: CinemaService = Depends(Provide[Container.service]),
+    service: CinemaService = Depends(Provide[Container.cinema_service]),
 ):
     return await service.add_cinema(data)
 
@@ -53,9 +52,9 @@ async def create_cinema(
 async def drop_cinema(
     cinema_id: int,
     session: Annotated[session_transaction, Depends()],
-    service: CinemaService = Depends(Provide[Container.service]),
+    service: CinemaService = Depends(Provide[Container.cinema_service]),
 ):
-    return await service.destroy_cinema(cinema_id, session)
+    return await service.destroy_cinema(cinema_id)
 
 
 @cinema_router.patch("/cinemas/{cinema_id}/update")
@@ -63,6 +62,6 @@ async def drop_cinema(
 async def update_cinema(
     cinema_id: int,
     data: UpdateCinemaDTO,
-    service: CinemaService = Depends(Provide[Container.service]),
+    service: CinemaService = Depends(Provide[Container.cinema_service]),
 ):
     return await service.update_cinema(cinema_id, data)

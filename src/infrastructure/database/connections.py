@@ -37,7 +37,7 @@ class DatabaseCORE:
         )
 
     @property
-    def get_session_connection(self):
+    def get_session_connection(self) -> async_sessionmaker:
         return async_sessionmaker(self._engine, class_=AsyncSession, autoflush=False)
 
     @asynccontextmanager

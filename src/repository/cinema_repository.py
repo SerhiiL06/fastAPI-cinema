@@ -17,13 +17,13 @@ class CityRepository:
         async with session() as sess:
             return await sess.get(City, city_id)
 
-    async def create_city(self, data: dict, session: AsyncSession) -> Optional[int]:
+    async def create_city(self, data: dict) -> Optional[int]:
 
         query = insert(City).values(**data).returning(City.id)
 
         try:
-            async with session() as sess:
-                result = await session.execute(query)
+            async with self.session() as sess:
+                result = await sess.execute(query)
                 await sess.commit()
 
                 return result.scalar()

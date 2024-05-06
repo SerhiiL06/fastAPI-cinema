@@ -1,18 +1,16 @@
 from abc import ABC, abstractmethod
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.infrastructure.database.models.base import Base
 
 
 class AbstractRepository(ABC):
 
     @abstractmethod
-    def find_all(self, session: AsyncSession) -> list[Base]:
+    def find_all(self) -> list[Base]:
         """Find list of entity"""
 
     @abstractmethod
-    def find_by_id(self, entity_id: int, session: AsyncSession) -> Base:
+    def find_by_id(self, entity_id: int) -> Base:
         """Retrieve entity by ident"""
 
     @abstractmethod
@@ -20,9 +18,9 @@ class AbstractRepository(ABC):
         """Create entity"""
 
     @abstractmethod
-    def update(self, entity_id: int, data: dict, sessiin: AsyncSession):
+    def update(self, entity_id: int, data: dict):
         "Update entity"
 
     @abstractmethod
-    def delete(self, entity_id: int, session: AsyncSession) -> None:
+    def delete(self, entity_id: int) -> None:
         """Delete entity"""
