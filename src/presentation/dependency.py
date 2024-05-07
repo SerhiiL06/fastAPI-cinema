@@ -4,9 +4,11 @@ from src.infrastructure.database.connections import DatabaseCORE
 from src.repository.actor_repository import ActorRepository
 from src.repository.cinema_repository import CinemaRepository
 from src.repository.genre_repository import GenreRepository
+from src.repository.movie_repository import MovieRepository
 from src.service.actor_service import ActorService
 from src.service.category_service import GenreService
 from src.service.cinema_service import CinemaService
+from src.service.impl.movie_service_impl import MovieServiceImpl
 
 
 class Container(containers.DeclarativeContainer):
@@ -20,17 +22,14 @@ class Container(containers.DeclarativeContainer):
         host=config.db_host,
         port=config.db_port,
     )
-    cinema_repo = providers.Factory(
-        CinemaRepository, session=db.provided.session_factory
-    )
+    cinema_repo = providers.Factory(CinemaRepository, db.provided.session_factory)
     cinema_service = providers.Factory(CinemaService, repo=cinema_repo)
 
-    actor_repo = providers.Factory(
-        ActorRepository,
-        session=db.provided.session_factory,
-    )
+    actor_repo = providers.Factory(ActorRepository, session=db.provided.session_factory)
     actor_service = providers.Factory(ActorService, repository=actor_repo)
 
     genre_repo = providers.Factory(GenreRepository, session=db.provided.session_factory)
-
     genre_service = providers.Factory(GenreService, repo=genre_repo)
+
+    movie_repo = providers.Factory(MovieRepository, db.provided.session_factory)
+    movie_service = providers.Factory(MovieServiceImpl, movie_repo)

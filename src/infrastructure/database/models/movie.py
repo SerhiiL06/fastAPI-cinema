@@ -57,11 +57,14 @@ class Movie(Base):
     __tablename__ = "movies"
 
     title: Mapped[str] = mapped_column(String(50))
+    slug: Mapped[str] = mapped_column(unique=True)
     description: Mapped[str] = mapped_column(String(2500))
     image: Mapped[str] = mapped_column(nullable=True)
     release_date: Mapped[date]
     duration: Mapped[int]
     created_at: Mapped[datetime] = mapped_column(default=datetime.now())
+    is_publish: Mapped[bool] = mapped_column(default=True)
+
     country_id: Mapped[int] = mapped_column(ForeignKey("countries.id"))
 
     actors: Mapped[list[Actor]] = relationship(
