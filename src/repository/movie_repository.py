@@ -41,13 +41,25 @@ class MovieRepository(AbstractRepository):
 
     async def create(self, data: dict) -> int:
 
-        q = insert(Movie).values(data).returning(Movie.id)
+        country_id = data.pop("country_id")
+        genres = data.pop("genres")
+        actors = data.pop("actors")
+
+        new_movie = Movie(
+            title=data.get("title"),
+            slug=data.get("slug"),
+            description=data.get("description"),
+            release_date=data.get("release_date"),
+            duration=data.get("duration"),
+        )
+
+        # new_movie.country =
 
         async with self.session() as connect:
-            result = await connect.execute(q)
+            await connect.add(new_movie)
             await connect.commit()
 
-            return result.slalar()
+            # return result.slalar()
 
     async def update(self, entity_id: int, data: dict) -> Movie:
         q = update(Movie).where(Movie.id == entity_id).values(data).returning(Movie)

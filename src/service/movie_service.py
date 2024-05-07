@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC, abstractclassmethod, abstractmethod
 from typing import Optional
 
 from src.infrastructure.database.models.movie import Movie
@@ -20,4 +20,8 @@ class MovieService(ABC):
 
     @abstractmethod
     def search(self, search_data: dict) -> list[Movie]:
+        pass
+
+    @abstractmethod
+    def add_movie(self, data: dict) -> int:
         pass
