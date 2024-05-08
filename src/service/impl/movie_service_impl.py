@@ -1,24 +1,29 @@
 from dataclasses import asdict
 from datetime import date
 
+from fastapi import UploadFile
 from slugify import slugify
 
 from src.infrastructure.database.models.movie import Movie
 from src.presentation.mappings.movie import CreateMovieDto
 from src.repository.movie_repository import MovieRepository
+from src.service.image_service import ImageService
 from src.service.movie_service import MovieService
 
 
 class MovieServiceImpl(MovieService):
 
-    def __init__(self, repo: MovieRepository) -> None:
+    def __init__(self, repo: MovieRepository, image: ImageService) -> None:
         self.repo = repo
+        self.image = image
 
     async def fetch_all(self) -> list[Movie]:
         return await self.repo.find_all()
 
-    async def add_movie(self, data: CreateMovieDto) -> int:
+    async def add_movie(self, data: CreateMovieDto, image: UploadFile) -> int:
         dict_data = asdict(data)
+
+        dict_data["image"] = self.image.save(image, dict_data.get("genres")[0])
 
         dict_data["slug"] = self.generate_slug(
             dict_data.get("title"),
@@ -27,7 +32,7 @@ class MovieServiceImpl(MovieService):
         )
         movie_id = await self.repo.create(dict_data)
 
-        return {"id": movie_id}
+        # return {"id": movie_id}
 
     async def fetch_by_slug(self, slug: str) -> Movie | None:
         return super().fetch_by_slug(slug)

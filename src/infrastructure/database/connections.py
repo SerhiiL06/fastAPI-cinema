@@ -32,9 +32,7 @@ class DatabaseCORE:
 
     @property
     def _engine(self):
-        return create_async_engine(
-            self._db_url, echo=True, pool_size=10, max_overflow=5
-        )
+        return create_async_engine(self._db_url, pool_size=10, max_overflow=5)
 
     def session_factory(self) -> async_sessionmaker:
         return async_sessionmaker(self._engine, class_=AsyncSession, autoflush=False)

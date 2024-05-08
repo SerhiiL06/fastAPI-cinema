@@ -34,11 +34,17 @@ class GenreRepository(AbstractRepository):
         return super().find_by_id(entity_id)
 
     async def find_by_title(self, title: Union[str, list]):
+
         q = select(Genre)
+
         if isinstance(title, list):
-            q = q.where(Genre.title.in_(title))
+
+            after_format = list(map(lambda x: x.capitalize(), title))
+            q = q.where(Genre.title.in_(after_format))
+
         else:
-            q = q.where(Genre.title == title)
+
+            q = q.where(Genre.title == title.capitalize())
 
         async with self.session() as connect:
             result = await connect.execute(q)

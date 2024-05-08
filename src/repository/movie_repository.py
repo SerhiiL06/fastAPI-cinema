@@ -63,11 +63,6 @@ class MovieRepository(CountryRepository, AbstractRepository):
             genres = await self.genre_repo.find_by_title(genres)
             actors = await self.actor_repo.find_by_id(actors)
 
-            if country is None:
-                raise HTTPException(
-                    404, f"country with name {country_name} doesnt exists"
-                )
-
             new_movie.country = country
 
             for g in genres:
