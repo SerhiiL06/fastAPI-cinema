@@ -25,7 +25,7 @@ class ActorRepository(AbstractRepository):
         return actors_list.scalars().all()
 
     async def find_by_id(
-        self, entity_id: Union[int, list[int]]
+        self, entity_id: Union[int, list[int]], session: AsyncResult
     ) -> Optional[Union[Actor, list[Actor]]]:
 
         q = select(Actor)
@@ -35,27 +35,27 @@ class ActorRepository(AbstractRepository):
         else:
             q = q.where(Actor.id == entity_id)
 
-        result: AsyncResult = await self.session.execute(q)
+        result: AsyncResult = await session.execute(q)
 
         return result.scalars().all()
 
-    async def create(self, data: dict) -> int:
+    async def create(self, data: dict, session: AsyncSession) -> int:
         q = insert(Actor).values(**data).returning(Actor.id)
 
         try:
 
-            result = await self.session.execute(q)
-            await self.session.commit()
+            result = await session.execute(q)
+            await session.commit()
 
             return result.scalar()
         except IntegrityError as e:
             raise HTTPException(400, "wrong country id")
 
-    def update(self, entity_id: int, data: dict):
+    def update(self, entity_id: int, data: dict, session):
         return super().update(entity_id, data)
 
-    async def delete(self, entity_id: int) -> None:
+    async def delete(self, entity_id: int, session) -> None:
         q = delete(Actor).where(Actor.id == entity_id)
 
-        await self.session.execute(q)
-        await self.session.commit()
+        await session.execute(q)
+        await session.commit()
