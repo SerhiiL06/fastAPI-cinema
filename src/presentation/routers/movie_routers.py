@@ -22,7 +22,7 @@ async def get_movie_list(
 @inject
 async def create_movie(
     data: CreateMovieDto,
-    image: Annotated[bytes, UploadFile],
+    # image: Annotated[bytes, UploadFile],
     service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
 ):
     return await service.add_movie(data)

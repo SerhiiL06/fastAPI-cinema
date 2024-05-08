@@ -25,7 +25,9 @@ class MovieServiceImpl(MovieService):
             dict_data.get("country_id"),
             dict_data.get("release_date"),
         )
-        await self.repo.create(dict_data)
+        movie_id = await self.repo.create(dict_data)
+
+        return {"id": movie_id}
 
     async def fetch_by_slug(self, slug: str) -> Movie | None:
         return super().fetch_by_slug(slug)

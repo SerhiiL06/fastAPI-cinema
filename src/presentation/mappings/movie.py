@@ -9,7 +9,7 @@ class CreateMovieDto:
 
     release_date: date
     duration: int
-    country_id: int
+    country_name: str
 
     genres: list[str]
-    actors: list[str]
+    actors: list[int]

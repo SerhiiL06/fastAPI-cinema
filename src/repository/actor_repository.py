@@ -1,3 +1,5 @@
+from typing import Optional, Union
+
 from fastapi import HTTPException
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
@@ -15,19 +17,26 @@ class ActorRepository(AbstractRepository):
     def __init__(self, session: AsyncSession) -> None:
         self.session = session()
 
-    async def find_all(self) -> list[Base]:
+    async def find_all(self) -> list[Actor]:
         async with self.session() as connect:
             actors_list = await connect.execute(
                 select(Actor).options(joinedload(Actor.country).load_only(Country.name))
             )
             return actors_list.scalars().all()
 
-    async def find_by_id(self, entity_id: int) -> Base:
-        async with self.session() as connect:
-            result: AsyncResult = await connect.get(Actor, entity_id)
+    async def find_by_id(
+        self, entity_id: Union[int, list[int]]
+    ) -> Optional[Union[Actor, list[Actor]]]:
 
-            if result is None:
-                raise HTTPException(400, "object is not find")
+        q = select(Actor)
+
+        async with self.session() as connect:
+            if isinstance(entity_id, list):
+                q = q.where(Actor.id.in_(entity_id))
+            else:
+                q = q.where(Actor.id == entity_id)
+
+            result: AsyncResult = await connect.execute(q)
 
             return result.scalars().all()
 

@@ -1,18 +1,23 @@
 from typing import Optional
 
+from fastapi import HTTPException
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
 
-from src.infrastructure.database.models.base import Base
 from src.infrastructure.database.models.movie import Movie
 
 from .abstract import AbstractRepository
+from .actor_repository import ActorRepository
+from .country_repository import CountryRepository
+from .genre_repository import GenreRepository
 
 
-class MovieRepository(AbstractRepository):
+class MovieRepository(CountryRepository, AbstractRepository):
 
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session()
+    def __init__(self, session: AsyncSession, actor_repo, genres_repo) -> None:
+        self.session: AsyncSession = session()
+        self.actor_repo: ActorRepository = actor_repo
+        self.genre_repo: GenreRepository = genres_repo
 
     async def find_all(self) -> list[Movie]:
 
@@ -41,7 +46,7 @@ class MovieRepository(AbstractRepository):
 
     async def create(self, data: dict) -> int:
 
-        country_id = data.pop("country_id")
+        country_name = data.pop("country_name")
         genres = data.pop("genres")
         actors = data.pop("actors")
 
@@ -53,13 +58,29 @@ class MovieRepository(AbstractRepository):
             duration=data.get("duration"),
         )
 
-        # new_movie.country =
-
         async with self.session() as connect:
-            await connect.add(new_movie)
-            await connect.commit()
+            country = await self.country_by_title(country_name, connect)
+            genres = await self.genre_repo.find_by_title(genres)
+            actors = await self.actor_repo.find_by_id(actors)
 
-            # return result.slalar()
+            if country is None:
+                raise HTTPException(
+                    404, f"country with name {country_name} doesnt exists"
+                )
+
+            new_movie.country = country
+
+            for g in genres:
+                new_movie.genres.append(g)
+
+            for a in actors:
+                new_movie.actors.append(a)
+
+            connect.add(new_movie)
+
+            await connect.commit()
+            await connect.refresh(new_movie)
+            return new_movie.id
 
     async def update(self, entity_id: int, data: dict) -> Movie:
         q = update(Movie).where(Movie.id == entity_id).values(data).returning(Movie)
