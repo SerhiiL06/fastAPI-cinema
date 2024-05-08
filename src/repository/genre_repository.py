@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.database.models.base import Base
 from src.infrastructure.database.models.movie import Genre
-
+from fastapi import HTTPException
 from .abstract import AbstractRepository
 
 
@@ -31,8 +31,10 @@ class GenreRepository(AbstractRepository):
     async def find_by_id(self, entity_id: int) -> Base:
         return super().find_by_id(entity_id)
 
-    async def find_by_title(self, title: Union[str, list]):
-
+    async def find_by_title(
+        self, title: Union[str, list], session: AsyncSession = None
+    ):
+        session = session if session else self.session
         q = select(Genre)
 
         if isinstance(title, list):
@@ -44,8 +46,12 @@ class GenreRepository(AbstractRepository):
 
             q = q.where(Genre.title == title.capitalize())
 
-            result = await self.session.execute(q)
-            return result.scalars().all()
+        result = await session.execute(q)
+
+        if not result:
+            raise HTTPException(404, "Genre with doesnt exists")
+
+        return result.scalars().all()
 
     async def delete(self, entity_id: int) -> None:
         return super().delete(entity_id)

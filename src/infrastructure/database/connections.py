@@ -1,8 +1,7 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
-                                    create_async_engine)
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 
 class DatabaseCORE:
@@ -32,21 +31,34 @@ class DatabaseCORE:
 
     @property
     def _engine(self):
-        return create_async_engine(self._db_url, pool_size=10, max_overflow=5)
+        return create_async_engine(
+            self._db_url, echo=True, pool_size=10, max_overflow=5
+        )
 
-    @property
     def session_factory(self) -> async_sessionmaker:
         return async_sessionmaker(self._engine, class_=AsyncSession, autoflush=False)
 
-    @property
     async def session_transaction(self) -> AsyncGenerator:
-        async with self.session_factory() as conn:
+        async with self.session_factory.begin() as conn:
             yield conn
 
-    @asynccontextmanager
     async def session(self) -> AsyncGenerator:
         connection = self.get_session_connection()
         try:
             yield connection
         finally:
             await connection.close()
+
+
+core = DatabaseCORE("cinema_db", "postgres", "", "localhost", "5433")
+
+
+async def session_transaction() -> AsyncGenerator:
+    # async with core.session() as conn:
+    #     yield conn
+
+    connection = core.session_factory()
+    try:
+        yield connection
+    finally:
+        await connection.close()

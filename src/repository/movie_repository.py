@@ -19,12 +19,17 @@ class MovieRepository(CountryRepository, AbstractRepository):
         self.actor_repo: ActorRepository = actor_repo
         self.genre_repo: GenreRepository = genres_repo
 
-    async def find_all(self) -> list[Movie]:
+    async def find_all(self, session: AsyncSession) -> list[Movie]:
 
-        q = select(Movie).where(Movie.is_publish)
-        result: AsyncResult = await self.session.execute(q)
+        q = (
+            select(Movie.id, Movie.title)
+            .where(Movie.is_publish)
+            .order_by(Movie.created_at.desc())
+        )
+        result: AsyncResult = await session.execute(q)
+        # await self.session.rollback()
 
-        return result.scalars().all()
+        return result.mappings().all()
 
     async def find_by_id(self, entity_id: int) -> Movie:
 
@@ -56,7 +61,7 @@ class MovieRepository(CountryRepository, AbstractRepository):
         )
 
         country = await self.country_by_title(country_name, self.session)
-        genres = await self.genre_repo.find_by_title(genres)
+        genres = await self.genre_repo.find_by_title(genres, self.session)
         actors = await self.actor_repo.find_by_id(actors)
 
         new_movie.country = country

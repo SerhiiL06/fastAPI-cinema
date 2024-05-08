@@ -1,9 +1,9 @@
 from dataclasses import asdict
 from datetime import date
 
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 from slugify import slugify
-
+from datetime import datetime
 from src.infrastructure.database.models.movie import Movie
 from src.presentation.mappings.movie import CreateMovieDto
 from src.repository.movie_repository import MovieRepository
@@ -17,13 +17,16 @@ class MovieServiceImpl(MovieService):
         self.repo = repo
         self.image = image
 
-    async def fetch_all(self) -> list[Movie]:
-        return await self.repo.find_all()
+    async def fetch_all(self, session) -> list[Movie]:
+        return await self.repo.find_all(session)
 
     async def add_movie(self, data: CreateMovieDto, image: UploadFile) -> int:
+
+        self.validate_movie(data)
+
         dict_data = asdict(data)
 
-        dict_data["image"] = self.image.save(image, dict_data.get("genres")[0])
+        dict_data["image"] = self.image.save(image, dict_data.get("genres"))
 
         dict_data["slug"] = self.generate_slug(
             dict_data.get("title"),
@@ -32,7 +35,7 @@ class MovieServiceImpl(MovieService):
         )
         movie_id = await self.repo.create(dict_data)
 
-        # return {"id": movie_id}
+        return {"id": movie_id}
 
     async def fetch_by_slug(self, slug: str) -> Movie | None:
         return super().fetch_by_slug(slug)
@@ -48,3 +51,20 @@ class MovieServiceImpl(MovieService):
         format_str = f"{movie_id}-{title}-{year}"
         slug = slugify(format_str)
         return slug
+
+    @classmethod
+    def validate_movie(cls, data: CreateMovieDto) -> None:
+
+        errors = {}
+
+        if data.release_date >= datetime.now().date():
+            errors["date_error"] = "release date cannot be after current date"
+
+        if data.duration < 0:
+            errors["duration_error"] = "duration must be a positiv integer"
+
+        if len(data.description) < 5:
+            errors["description_error"] = "description must be a five letter minimum"
+
+        if errors:
+            raise HTTPException(400, errors)
