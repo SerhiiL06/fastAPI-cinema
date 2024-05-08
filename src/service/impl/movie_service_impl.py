@@ -1,6 +1,6 @@
 from dataclasses import asdict
 from datetime import date
-
+from typing import Optional
 from fastapi import UploadFile, HTTPException
 from slugify import slugify
 from datetime import datetime
@@ -9,6 +9,7 @@ from src.presentation.mappings.movie import CreateMovieDto
 from src.repository.movie_repository import MovieRepository
 from src.service.image_service import ImageService
 from src.service.movie_service import MovieService
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class MovieServiceImpl(MovieService):
@@ -20,7 +21,7 @@ class MovieServiceImpl(MovieService):
     async def fetch_all(self, session) -> list[Movie]:
         return await self.repo.find_all(session)
 
-    async def add_movie(self, data: CreateMovieDto, image: UploadFile) -> int:
+    async def add_movie(self, data: CreateMovieDto, image: UploadFile, session) -> int:
 
         self.validate_movie(data)
 
@@ -33,15 +34,20 @@ class MovieServiceImpl(MovieService):
             dict_data.get("country_id"),
             dict_data.get("release_date"),
         )
-        movie_id = await self.repo.create(dict_data)
+        movie_id = await self.repo.create(dict_data, session)
 
         return {"id": movie_id}
 
-    async def fetch_by_slug(self, slug: str) -> Movie | None:
-        return super().fetch_by_slug(slug)
+    async def fetch_by_slug(self, slug: str, session: AsyncSession) -> Optional[Movie]:
 
-    async def fetch_by_id(self, entity_id: int) -> Movie | None:
-        return await self.repo.find_by_id(entity_id)
+        movie = await self.repo.find_by_slug(slug, session)
+
+        return {"movie": movie}
+
+    async def fetch_by_id(self, entity_id: int) -> Optional[Movie]:
+        movie = await self.repo.find_by_id(entity_id)
+
+        return {"movie": movie}
 
     async def search(self, search_data: dict) -> list[Movie]:
         return super().search(search_data)

@@ -34,7 +34,7 @@ class GenreRepository(AbstractRepository):
     async def find_by_title(
         self, title: Union[str, list], session: AsyncSession = None
     ):
-        session = session if session else self.session
+
         q = select(Genre)
 
         if isinstance(title, list):
