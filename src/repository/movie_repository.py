@@ -22,27 +22,24 @@ class MovieRepository(CountryRepository, AbstractRepository):
     async def find_all(self) -> list[Movie]:
 
         q = select(Movie).where(Movie.is_publish)
-        async with self.session() as connect:
-            result: AsyncResult = await connect.execute(q)
+        result: AsyncResult = await self.session.execute(q)
 
-            return result.scalars().all()
+        return result.scalars().all()
 
     async def find_by_id(self, entity_id: int) -> Movie:
 
         q = select(Movie).where(Movie.id == entity_id)
 
-        async with self.session() as connect:
-            result: AsyncResult = await connect.execute(q)
+        result = await self.session.execute(q)
 
-            return result.scalars().one()
+        return result.scalars().one()
 
     async def find_by_slug(self, slug: str) -> Optional[Movie]:
         q = select(Movie).where(Movie.slug == slug)
 
-        async with self.session() as connect:
-            result = await connect.execute(q)
+        result = await self.session.execute(q)
 
-            return result.scalars().one()
+        return result.scalars().one()
 
     async def create(self, data: dict) -> int:
 
@@ -58,37 +55,34 @@ class MovieRepository(CountryRepository, AbstractRepository):
             duration=data.get("duration"),
         )
 
-        async with self.session() as connect:
-            country = await self.country_by_title(country_name, connect)
-            genres = await self.genre_repo.find_by_title(genres)
-            actors = await self.actor_repo.find_by_id(actors)
+        country = await self.country_by_title(country_name, self.session)
+        genres = await self.genre_repo.find_by_title(genres)
+        actors = await self.actor_repo.find_by_id(actors)
 
-            new_movie.country = country
+        new_movie.country = country
 
-            for g in genres:
-                new_movie.genres.append(g)
+        for g in genres:
+            new_movie.genres.append(g)
 
-            for a in actors:
-                new_movie.actors.append(a)
+        for a in actors:
+            new_movie.actors.append(a)
 
-            connect.add(new_movie)
+        self.session.add(new_movie)
 
-            await connect.commit()
-            await connect.refresh(new_movie)
-            return new_movie.id
+        await self.session.commit()
+        await self.session.refresh(new_movie)
+        return new_movie.id
 
     async def update(self, entity_id: int, data: dict) -> Movie:
         q = update(Movie).where(Movie.id == entity_id).values(data).returning(Movie)
 
-        async with self.session() as connect:
-            result = await connect.execute(q)
-            await connect.execute()
+        result = await self.session.execute(q)
+        await self.session.execute()
 
-            return result
+        return result
 
     async def delete(self, entity_id: int) -> None:
         q = delete(Movie).where(Movie.id == entity_id)
 
-        async with self.session() as connect:
-            await connect.execute(q)
-            await connect.commit()
+        await self.session.execute(q)
+        await self.session.commit()

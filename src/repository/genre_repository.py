@@ -15,20 +15,18 @@ class GenreRepository(AbstractRepository):
         self.session = session()
 
     async def find_all(self) -> list[Base]:
-        async with self.session() as connect:
-            q = select(Genre)
+        q = select(Genre)
 
-            result = await connect.execute(q)
+        result = await self.session.execute(q)
 
-            return result.scalars().all()
+        return result.scalars().all()
 
     async def create(self, title: str) -> int:
         q = insert(Genre).values(title=title).returning(Genre.id)
 
-        async with self.session() as connect:
-            genre = await connect.execute(q)
-            await connect.commit()
-            return genre.scalar()
+        genre = await self.session.execute(q)
+        await self.session.commit()
+        return genre.scalar()
 
     async def find_by_id(self, entity_id: int) -> Base:
         return super().find_by_id(entity_id)
@@ -46,8 +44,7 @@ class GenreRepository(AbstractRepository):
 
             q = q.where(Genre.title == title.capitalize())
 
-        async with self.session() as connect:
-            result = await connect.execute(q)
+            result = await self.session.execute(q)
             return result.scalars().all()
 
     async def delete(self, entity_id: int) -> None:

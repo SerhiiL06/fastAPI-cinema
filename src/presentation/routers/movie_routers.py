@@ -2,11 +2,12 @@ from datetime import date
 from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Body, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Body, Depends, File, UploadFile
 
 from src.presentation.dependency import Container
 from src.presentation.mappings.movie import CreateMovieDto
 from src.service.impl.movie_service_impl import MovieServiceImpl
+
 
 movies_router = APIRouter(tags=["movie"])
 

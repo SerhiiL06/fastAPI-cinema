@@ -25,7 +25,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     image_service = providers.Factory(ImageService)
-    cinema_repo = providers.Factory(CinemaRepository, db.provided.session_factory)
+    cinema_repo = providers.Factory(CinemaRepository, db.provided.sesion_factory)
     cinema_service = providers.Factory(CinemaService, repo=cinema_repo)
 
     actor_repo = providers.Factory(ActorRepository, session=db.provided.session_factory)

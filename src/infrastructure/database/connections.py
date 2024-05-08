@@ -34,12 +34,13 @@ class DatabaseCORE:
     def _engine(self):
         return create_async_engine(self._db_url, pool_size=10, max_overflow=5)
 
+    @property
     def session_factory(self) -> async_sessionmaker:
         return async_sessionmaker(self._engine, class_=AsyncSession, autoflush=False)
 
-    @asynccontextmanager
+    @property
     async def session_transaction(self) -> AsyncGenerator:
-        async with self.get_session_connection() as conn:
+        async with self.session_factory() as conn:
             yield conn
 
     @asynccontextmanager
