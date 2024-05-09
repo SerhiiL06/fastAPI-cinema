@@ -55,11 +55,11 @@ core = DatabaseCORE("cinema_db", "postgres", "", "localhost", "5433")
 
 
 async def session_transaction() -> AsyncGenerator:
-    # async with core.session() as conn:
-    #     yield conn
+    async with core.session_factory() as conn:
+        yield conn
 
-    connection = core.session_factory()
-    try:
-        yield connection
-    finally:
-        await connection.close()
+    # connection = core.session_factory()
+    # try:
+    #     yield connection
+    # finally:
+    #     await connection.close()
