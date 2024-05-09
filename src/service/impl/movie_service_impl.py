@@ -28,7 +28,6 @@ class MovieServiceImpl(MovieService):
         return await self.repo.find_all(page, session)
 
     async def add_movie(self, data: CreateMovieDto, image: UploadFile, session) -> int:
-    async def add_movie(self, data: CreateMovieDto, image: UploadFile, session) -> int:
 
         self.validate_movie(data)
 
@@ -51,6 +50,7 @@ class MovieServiceImpl(MovieService):
         movie = await self.repo.find_by_slug(slug, session)
 
         return {"movie": movie}
+
     async def fetch_by_slug(self, slug: str, session: AsyncSession) -> Optional[Movie]:
 
         movie = await self.repo.find_by_slug(slug, session)
@@ -63,6 +63,7 @@ class MovieServiceImpl(MovieService):
         movie = await self.repo.find_by_id(entity_id, session)
 
         return movie
+
     async def fetch_by_id(self, entity_id: int) -> Optional[Movie]:
         movie = await self.repo.find_by_id(entity_id)
 
