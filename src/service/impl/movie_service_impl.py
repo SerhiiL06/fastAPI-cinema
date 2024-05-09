@@ -51,23 +51,12 @@ class MovieServiceImpl(MovieService):
 
         return {"movie": movie}
 
-    async def fetch_by_slug(self, slug: str, session: AsyncSession) -> Optional[Movie]:
-
-        movie = await self.repo.find_by_slug(slug, session)
-
-        return {"movie": movie}
-
     async def fetch_by_id(
         self, entity_id: int, session: AsyncSession
     ) -> Optional[Movie]:
         movie = await self.repo.find_by_id(entity_id, session)
 
         return movie
-
-    async def fetch_by_id(self, entity_id: int) -> Optional[Movie]:
-        movie = await self.repo.find_by_id(entity_id)
-
-        return {"movie": movie}
 
     async def search(self, search_data: dict) -> list[Movie]:
         return super().search(search_data)

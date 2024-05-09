@@ -1,8 +1,9 @@
 from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+import os
 
-from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
-                                    create_async_engine)
+load_dotenv()
 
 
 class DatabaseCORE:
@@ -44,23 +45,16 @@ class DatabaseCORE:
         async with self.session_factory.begin() as conn:
             yield conn
 
-    async def session(self) -> AsyncGenerator:
-        connection = self.get_session_connection()
-        try:
-            yield connection
-        finally:
-            await connection.close()
 
-
-core = DatabaseCORE("cinema_db", "postgres", "", "localhost", "5433")
+core = DatabaseCORE(
+    os.getenv("DB_NAME"),
+    os.getenv("DB_USERNAME"),
+    os.getenv("DB_PASSWORD"),
+    os.getenv("DB_HOST"),
+    os.getenv("DB_PORT"),
+)
 
 
 async def session_transaction() -> AsyncGenerator:
     async with core.session_factory() as conn:
         yield conn
-
-    # connection = core.session_factory()
-    # try:
-    #     yield connection
-    # finally:
-    #     await connection.close()

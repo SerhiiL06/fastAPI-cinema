@@ -49,13 +49,13 @@ class MovieRepository(CountryRepository, AbstractRepository):
             .options(
                 joinedload(Movie.country).load_only(Country.name),
                 joinedload(Movie.genres),
-                selectinload(Movie.actors),
+                joinedload(Movie.actors),
             )
         )
 
         result = await session.execute(q)
 
-        return result.scalars().one()
+        return result.scalars().unique().one()
 
     async def find_by_slug(self, slug: str, session: AsyncSession) -> Optional[Movie]:
 
