@@ -38,7 +38,7 @@ class GenreRepository(AbstractRepository):
 
         q = select(Genre)
 
-        if isinstance(title, list):
+        if type(title) in [list, tuple]:
 
             after_format = list(map(lambda x: x.capitalize(), title))
             q = q.where(Genre.title.in_(after_format))

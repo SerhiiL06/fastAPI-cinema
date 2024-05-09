@@ -30,7 +30,7 @@ class ActorRepository(AbstractRepository):
 
         q = select(Actor)
 
-        if isinstance(entity_id, list):
+        if type(entity_id) in [list, tuple]:
             q = q.where(Actor.id.in_(entity_id))
         else:
             q = q.where(Actor.id == entity_id)

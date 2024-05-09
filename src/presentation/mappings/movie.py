@@ -13,3 +13,16 @@ class CreateMovieDto:
 
     genres: list[str]
     actors: list[int]
+
+
+@dataclass
+class UpdateMovieDto:
+    title: str = None
+    description: str = None
+
+    release_date: date = None
+    duration: int = None
+    country_name: str = None
+
+    genres: list[str] = None
+    actors: list[int] = None

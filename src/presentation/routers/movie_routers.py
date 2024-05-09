@@ -6,7 +6,7 @@ from fastapi import APIRouter, Body, Depends, File, Query, UploadFile
 
 from src.infrastructure.database.connections import session_transaction
 from src.presentation.dependency import Container
-from src.presentation.mappings.movie import CreateMovieDto
+from src.presentation.mappings.movie import CreateMovieDto, UpdateMovieDto
 from src.service.impl.movie_service_impl import MovieServiceImpl
 
 movies_router = APIRouter(tags=["movie"])
@@ -67,3 +67,32 @@ async def retrive_movie_by_slug(
     service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
 ):
     return await service.fetch_by_slug(movie_slug, session)
+
+
+@movies_router.patch("/movies/{movie_id}")
+@inject
+async def update_movie(
+    movie_id: int,
+    session: Annotated[session_transaction, Depends()],
+    image: UploadFile = File(None),
+    title: str = Body(None),
+    description: str = Body(None),
+    release_date: date = Body(None),
+    duration: int = Body(None),
+    country_name: str = Body(None),
+    genres: list[str] = Body(None),
+    actors: list[int] = Body(None),
+    service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
+):
+    genres = genres[0].split(",") if genres else None
+    data = UpdateMovieDto(
+        title,
+        description,
+        release_date,
+        duration,
+        country_name,
+        genres,
+        actors,
+    )
+
+    return await service.update_movie(movie_id, data, session, image)

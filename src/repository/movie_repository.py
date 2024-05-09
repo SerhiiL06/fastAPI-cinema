@@ -1,10 +1,11 @@
-from typing import Optional
+from typing import Optional, Union
 
-from sqlalchemy import delete, extract, select, update
+from sqlalchemy import delete, extract, select
 from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload
 
-from src.infrastructure.database.models.movie import Country, Genre, Movie, MovieGenre
+from src.infrastructure.database.models.movie import (Country, Genre, Movie,
+                                                      MovieGenre)
 
 from .abstract import AbstractRepository
 from .actor_repository import ActorRepository
@@ -41,33 +42,30 @@ class MovieRepository(CountryRepository, AbstractRepository):
 
         return result.mappings().all()
 
-    async def find_by_id(self, entity_id: int, session: AsyncSession) -> Movie:
-
-        q = (
-            select(Movie)
-            .where(Movie.id == entity_id)
-            .options(
-                joinedload(Movie.country).load_only(Country.name),
-                joinedload(Movie.genres),
-                joinedload(Movie.actors),
-            )
-        )
-
-        result = await session.execute(q)
-
-        return result.scalars().unique().one()
+    async def find_by_id(
+        self, entity_id: int, session: AsyncSession
+    ) -> Optional[Movie]:
+        return await self._find_by_slug_or_id(entity_id, session)
 
     async def find_by_slug(self, slug: str, session: AsyncSession) -> Optional[Movie]:
+        return await self._find_by_slug_or_id(slug, session)
 
-        q = (
-            select(Movie)
-            .where(Movie.slug == slug)
-            .options(
-                joinedload(Movie.country),
-                joinedload(Movie.genres),
-                joinedload(Movie.actors),
-            )
+    async def _find_by_slug_or_id(
+        self,
+        search_arg: Union[str, int],
+        session: AsyncSession,
+    ) -> Optional[Movie]:
+
+        q = select(Movie).options(
+            joinedload(Movie.country).load_only(Country.name),
+            joinedload(Movie.genres),
+            joinedload(Movie.actors),
         )
+
+        if isinstance(search_arg, int):
+            q = q.where(Movie.id == search_arg)
+        else:
+            q = q.where(Movie.slug == search_arg)
 
         result = await session.execute(q)
 
@@ -93,11 +91,7 @@ class MovieRepository(CountryRepository, AbstractRepository):
 
         new_movie.country = country
 
-        for g in genres:
-            new_movie.genres.append(g)
-
-        for a in actors:
-            new_movie.actors.append(a)
+        new_movie = self.connect_relations(new_movie, genres, actors)
 
         session.add(new_movie)
 
@@ -106,15 +100,44 @@ class MovieRepository(CountryRepository, AbstractRepository):
         return new_movie.id
 
     async def update(self, entity_id: int, data: dict, session: AsyncSession) -> Movie:
-        q = update(Movie).where(Movie.id == entity_id).values(data).returning(Movie)
 
-        result = await session.execute(q)
-        await session.execute()
+        genres = await self.genre_repo.find_by_title(data.pop("genres", ()), session)
+        actors = await self.actor_repo.find_by_id(data.pop("actors", ()), session)
 
-        return result
+        instance = await session.get(Movie, entity_id)
+
+        instance = self.connect_relations(instance, genres, actors)
+
+        instance.title = data.get("title", instance.title)
+        instance.description = data.get("description", instance.description)
+        instance.release_date = data.get("release_date", instance.release_date)
+        instance.country_id = data.get("country_id", instance.country_id)
+        instance.image = data.get("image", instance.image)
+        instance.duration = data.get("diration", instance.duration)
+
+        await session.commit()
+
+        await session.refresh(instance)
+
+        return {"after_update": instance}
 
     async def delete(self, entity_id: int, session: AsyncSession) -> None:
         q = delete(Movie).where(Movie.id == entity_id)
 
         await session.execute(q)
         await session.commit()
+
+    @classmethod
+    def connect_relations(
+        cls, instance: Movie, genres: Union[list, None], actors: Union[list, None]
+    ) -> Movie:
+
+        if genres:
+            for g in genres:
+                instance.genres.append(g)
+
+        if actors is not None:
+            for a in actors:
+                instance.actors.append(a)
+
+        return instance
