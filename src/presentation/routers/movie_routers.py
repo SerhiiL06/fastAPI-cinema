@@ -2,12 +2,12 @@ from datetime import date
 from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Body, Depends, File, UploadFile
+from fastapi import APIRouter, Body, Depends, File, Query, UploadFile
+
 from src.infrastructure.database.connections import session_transaction
 from src.presentation.dependency import Container
 from src.presentation.mappings.movie import CreateMovieDto
 from src.service.impl.movie_service_impl import MovieServiceImpl
-
 
 movies_router = APIRouter(tags=["movie"])
 
@@ -17,9 +17,10 @@ movies_router = APIRouter(tags=["movie"])
 async def get_movie_list(
     session: Annotated[session_transaction, Depends()],
     service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
+    page: int = Query(1, gt=0),
 ):
 
-    return await service.fetch_all(session)
+    return await service.fetch_all(page, session)
 
 
 @movies_router.post("/movies")
@@ -46,3 +47,23 @@ async def create_movie(
         actors,
     )
     return await service.add_movie(dto, image, session)
+
+
+@movies_router.get("/movies/{movie_id}")
+@inject
+async def retrive_movie_by_id(
+    movie_id: int,
+    session: Annotated[session_transaction, Depends()],
+    service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
+):
+    return await service.fetch_by_id(movie_id, session)
+
+
+@movies_router.get("/movies/find-by-slug/{movie_slug}")
+@inject
+async def retrive_movie_by_slug(
+    movie_slug: str,
+    session: Annotated[session_transaction, Depends()],
+    service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
+):
+    return await service.fetch_by_slug(movie_slug, session)

@@ -1,11 +1,12 @@
 from typing import Union
 
+from fastapi import HTTPException
 from sqlalchemy import insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.database.models.base import Base
 from src.infrastructure.database.models.movie import Genre
-from fastapi import HTTPException
+
 from .abstract import AbstractRepository
 
 
