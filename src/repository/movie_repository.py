@@ -1,10 +1,10 @@
 from typing import Optional
 
-from fastapi import HTTPException
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import delete, extract, select, update
 from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
 
-from src.infrastructure.database.models.movie import Movie
+from src.infrastructure.database.models.movie import Country, Genre, Movie, MovieGenre
 
 from .abstract import AbstractRepository
 from .actor_repository import ActorRepository
@@ -18,12 +18,24 @@ class MovieRepository(CountryRepository, AbstractRepository):
         self.actor_repo: ActorRepository = actor_repo
         self.genre_repo: GenreRepository = genres_repo
 
-    async def find_all(self, session: AsyncSession) -> list[Movie]:
+    async def find_all(self, page: int, session: AsyncSession) -> list[Movie]:
 
+        offset = (page - 1) * 5
         q = (
-            select(Movie.id, Movie.title)
+            select(
+                Movie.id,
+                Movie.title,
+                extract("YEAR", Movie.release_date).label("year"),
+                Genre.title.label("genre"),
+                Country.name.label("country"),
+            )
+            .join(Country, Movie.country_id == Country.id)
+            .join(MovieGenre, Movie.id == MovieGenre.movie_id)
+            .join(Genre, Genre.id == MovieGenre.genre_id)
             .where(Movie.is_publish)
             .order_by(Movie.created_at.desc())
+            .offset(offset)
+            .limit(5)
         )
         result: AsyncResult = await session.execute(q)
 
@@ -31,18 +43,35 @@ class MovieRepository(CountryRepository, AbstractRepository):
 
     async def find_by_id(self, entity_id: int, session: AsyncSession) -> Movie:
 
-        q = select(Movie).where(Movie.id == entity_id)
+        q = (
+            select(Movie)
+            .where(Movie.id == entity_id)
+            .options(
+                joinedload(Movie.country).load_only(Country.name),
+                joinedload(Movie.genres),
+                selectinload(Movie.actors),
+            )
+        )
 
         result = await session.execute(q)
 
         return result.scalars().one()
 
     async def find_by_slug(self, slug: str, session: AsyncSession) -> Optional[Movie]:
-        q = select(Movie).where(Movie.slug == slug)
+
+        q = (
+            select(Movie)
+            .where(Movie.slug == slug)
+            .options(
+                joinedload(Movie.country),
+                joinedload(Movie.genres),
+                joinedload(Movie.actors),
+            )
+        )
 
         result = await session.execute(q)
 
-        return result.scalars().one()
+        return result.scalars().unique().one()
 
     async def create(self, data: dict, session) -> int:
 

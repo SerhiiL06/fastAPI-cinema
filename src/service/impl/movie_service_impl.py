@@ -1,15 +1,16 @@
 from dataclasses import asdict
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
-from fastapi import UploadFile, HTTPException
+
+from fastapi import HTTPException, UploadFile
 from slugify import slugify
-from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.infrastructure.database.models.movie import Movie
 from src.presentation.mappings.movie import CreateMovieDto
 from src.repository.movie_repository import MovieRepository
 from src.service.image_service import ImageService
 from src.service.movie_service import MovieService
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class MovieServiceImpl(MovieService):
@@ -18,8 +19,12 @@ class MovieServiceImpl(MovieService):
         self.repo = repo
         self.image = image
 
-    async def fetch_all(self, session) -> list[Movie]:
-        return await self.repo.find_all(session)
+    async def fetch_all(
+        self,
+        page: int,
+        session: AsyncSession,
+    ) -> list[Movie]:
+        return await self.repo.find_all(page, session)
 
     async def add_movie(self, data: CreateMovieDto, image: UploadFile, session) -> int:
 
@@ -44,10 +49,12 @@ class MovieServiceImpl(MovieService):
 
         return {"movie": movie}
 
-    async def fetch_by_id(self, entity_id: int) -> Optional[Movie]:
-        movie = await self.repo.find_by_id(entity_id)
+    async def fetch_by_id(
+        self, entity_id: int, session: AsyncSession
+    ) -> Optional[Movie]:
+        movie = await self.repo.find_by_id(entity_id, session)
 
-        return {"movie": movie}
+        return movie
 
     async def search(self, search_data: dict) -> list[Movie]:
         return super().search(search_data)
