@@ -1,7 +1,7 @@
-from typing import Union
+from typing import Optional, Union
 
 from fastapi import HTTPException
-from sqlalchemy import insert, select
+from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.database.models.base import Base
@@ -12,29 +12,31 @@ from .abstract import AbstractRepository
 
 class GenreRepository(AbstractRepository):
 
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session()
-
-    async def find_all(self) -> list[Base]:
+    async def find_all(self, session: AsyncSession) -> list[Base]:
         q = select(Genre)
 
-        result = await self.session.execute(q)
+        result = await session.execute(q)
 
         return result.scalars().all()
 
-    async def create(self, title: str) -> int:
+    async def create(self, title: str, session: AsyncSession) -> int:
         q = insert(Genre).values(title=title).returning(Genre.id)
 
-        genre = await self.session.execute(q)
-        await self.session.commit()
+        genre = await session.execute(q)
+        await session.commit()
         return genre.scalar()
 
-    async def find_by_id(self, entity_id: int) -> Base:
-        return super().find_by_id(entity_id)
+    async def find_by_id(
+        self, entity_id: int, session: AsyncSession
+    ) -> Optional[Genre]:
+        genre = await session.get(Genre, entity_id)
 
-    async def find_by_title(
-        self, title: Union[str, list], session: AsyncSession = None
-    ):
+        if genre is None:
+            raise HTTPException(400, f"genre with {id} doesnt exists")
+
+        return genre
+
+    async def find_by_title(self, title: Union[str, list], session: AsyncSession):
 
         q = select(Genre)
 
@@ -54,8 +56,21 @@ class GenreRepository(AbstractRepository):
 
         return result.scalars().all()
 
-    async def delete(self, entity_id: int) -> None:
-        return super().delete(entity_id)
+    async def delete(self, entity_id: int, session: AsyncSession) -> None:
+        q = delete(Genre).where(Genre.id == entity_id)
 
-    async def update(self, entity_id: int, data: dict):
-        return super().update(entity_id, data)
+        await session.execute(q)
+
+        await session.commit()
+
+    async def update(self, entity_id: int, data: dict, session: AsyncSession) -> Genre:
+
+        genre_instance = await self.find_by_id(entity_id, session)
+
+        genre_instance.title = data.get("title", genre_instance.title)
+
+        await session.commit()
+
+        await session.refresh(genre_instance)
+
+        return genre_instance

@@ -1,8 +1,9 @@
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from service.genre_service import GenreService
 from src.presentation.dependency import Container
-from src.service.category_service import GenreRepository
 
 genre_router = APIRouter(tags=["category"])
 
@@ -10,15 +11,17 @@ genre_router = APIRouter(tags=["category"])
 @genre_router.get("/categories")
 @inject
 async def fetch_genres(
-    service: GenreRepository = Depends(Provide[Container.genre_service]),
+    session: AsyncSession,
+    service: GenreService = Depends(Provide[Container.genre_service]),
 ):
-    return await service.find_all()
+    return await service.find_all(session)
 
 
 @genre_router.post("/categories")
 @inject
 async def fetch_categories(
+    session: AsyncSession,
     title: str,
-    service: GenreRepository = Depends(Provide[Container.genre_service]),
+    service: GenreService = Depends(Provide[Container.genre_service]),
 ):
-    return await service.add_movie(title)
+    return await service.add_genre(title, session)

@@ -14,35 +14,37 @@ class CinemaService:
     def __init__(self, repo: CinemaRepository) -> None:
         self.repo = repo
 
-    async def add_city(self, data: CityDTO):
+    async def add_city(self, data: CityDTO, session: AsyncSession):
 
-        city_id = await self.repo.create_city(asdict(data))
+        city_id = await self.repo.create_city(asdict(data), session)
 
         return {"city": city_id}
 
-    async def add_cinema(self, data: CinemaDTO) -> dict:
+    async def add_cinema(self, data: CinemaDTO, session: AsyncSession) -> dict:
 
         validate_data = self.cinema_validate(data)
-        cinema_id = await self.repo.create(cinema_dto_to_entity(validate_data))
+        cinema_id = await self.repo.create(cinema_dto_to_entity(validate_data), session)
 
         return {"id": cinema_id}
 
-    async def get_cinema_list(self):
-        entities = await self.repo.find_all()
+    async def get_cinema_list(self, session: AsyncSession):
+        entities = await self.repo.find_all(session)
 
         return {"cinemas_list": cinema_entity_to_dto(entities)}
 
-    async def get_cinema(self, entity_id: int):
-        cinema = await self.repo.find_by_id(entity_id)
+    async def get_cinema(self, entity_id: int, session: AsyncSession):
+        cinema = await self.repo.find_by_id(entity_id, session)
 
         return {"cinema": cinema}
 
-    async def destroy_cinema(self, entity_id: int):
-        await self.repo.delete(entity_id)
+    async def destroy_cinema(self, entity_id: int, session: AsyncSession):
+        await self.repo.delete(entity_id, session)
 
-    async def update_cinema(self, entity_id: int, data: CinemaDTO):
+    async def update_cinema(
+        self, entity_id: int, data: CinemaDTO, session: AsyncSession
+    ):
 
-        cleared_data = self.clear_none(asdict(data))
+        cleared_data = self.clear_none(asdict(data), session)
 
         if not cleared_data:
             raise HTTPException(400, "No data to update")

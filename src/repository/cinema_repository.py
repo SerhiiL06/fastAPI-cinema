@@ -17,13 +17,13 @@ class CityRepository:
 
         return await session.get(City, city_id)
 
-    async def create_city(self, data: dict) -> Optional[int]:
+    async def create_city(self, data: dict, session: AsyncSession) -> Optional[int]:
 
         query = insert(City).values(**data).returning(City.id)
 
         try:
-            result = await self.session.execute(query)
-            await self.session.commit()
+            result = await session.execute(query)
+            await session.commit()
 
             return result.scalar()
         except IntegrityError:
@@ -32,11 +32,7 @@ class CityRepository:
 
 class CinemaRepository(CityRepository, AbstractRepository):
 
-    def __init__(self, session: AsyncSession) -> None:
-        super().__init__()
-        self.session = session()
-
-    async def find_all(self) -> list[Cinema]:
+    async def find_all(self, session: AsyncSession) -> list[Cinema]:
 
         query = (
             select(Cinema)
@@ -44,48 +40,46 @@ class CinemaRepository(CityRepository, AbstractRepository):
             .order_by(Cinema.title.asc(), Cinema.id.desc())
         )
 
-        result = await self.session.execute(query)
+        result = await session.execute(query)
         return result.scalars().all()
 
-    async def create(self, cinema: Cinema) -> int:
+    async def create(self, cinema: Cinema, session: AsyncSession) -> int:
         city = await self.get_city_by_id(cinema.city_id, self.session)
 
         if city is None:
             raise HTTPException(404, "city with this id doesn't exists")
 
         cinema.city = city
-        self.session.add(cinema)
-        await self.session.commit()
+        session.add(cinema)
+        await session.commit()
 
-        await self.session.refresh(cinema)
+        await session.refresh(cinema)
 
         return cinema.id
 
-    async def find_by_id(self, entity_id: int) -> Cinema:
+    async def find_by_id(self, entity_id: int, session: AsyncSession) -> Cinema:
 
-        cinema = await self.session.get(
-            Cinema, entity_id, options=[joinedload(Cinema.city)]
-        )
+        cinema = await session.get(Cinema, entity_id, options=[joinedload(Cinema.city)])
 
         if cinema is None:
             raise HTTPException(404, "cinema doesn't exists")
 
         return cinema
 
-    async def update(self, entity_id: int, data: dict) -> None:
+    async def update(self, entity_id: int, data: dict, session: AsyncSession) -> None:
         query = (
             update(Cinema).where(Cinema.id == entity_id).values(**data).returning("*")
         )
         try:
 
-            updated = await self.session.execute(query)
-            await self.session.commit()
+            updated = await session.execute(query)
+            await session.commit()
             return updated.mappings().all()
         except Exception:
             raise HTTPException(400, "Something went wrong!")
 
-    async def delete(self, obj_id: int) -> None:
+    async def delete(self, obj_id: int, session: AsyncSession) -> None:
         query = await self.find_by_id(obj_id)
 
-        await self.session.delete(query)
-        await self.session.commit()
+        await session.delete(query)
+        await session.commit()

@@ -1,7 +1,7 @@
 from typing import Optional, Union
 
 from fastapi import HTTPException
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import delete, insert, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
 from sqlalchemy.orm import joinedload
@@ -14,12 +14,9 @@ from .abstract import AbstractRepository
 
 class ActorRepository(AbstractRepository):
 
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session()
+    async def find_all(self, session: AsyncSession) -> list[Actor]:
 
-    async def find_all(self) -> list[Actor]:
-
-        actors_list = await self.session.execute(
+        actors_list = await session.execute(
             select(Actor).options(joinedload(Actor.country).load_only(Country.name))
         )
         return actors_list.scalars().all()
