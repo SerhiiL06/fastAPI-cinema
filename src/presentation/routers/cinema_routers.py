@@ -1,7 +1,10 @@
+from typing import Annotated
+
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.infrastructure.database.connections import session_transaction
 from src.presentation.dependency import Container
 from src.presentation.mappings.cinema import (CinemaDTO, CityDTO,
                                               UpdateCinemaDTO)
@@ -13,7 +16,7 @@ cinema_router = APIRouter(tags=["cinema"])
 @cinema_router.get("/cinemas")
 @inject
 async def fetch_cinemas(
-    session: AsyncSession,
+    session: Annotated[AsyncSession, Depends(session_transaction)],
     service: CinemaService = Depends(Provide[Container.cinema_service]),
 ):
     return await service.get_cinema_list(session)
@@ -22,7 +25,7 @@ async def fetch_cinemas(
 @cinema_router.get("/cinemas/{cinema_id}")
 @inject
 async def detail_cinema(
-    session: AsyncSession,
+    session: Annotated[AsyncSession, Depends(session_transaction)],
     cinema_id: int,
     service: CinemaService = Depends(Provide[Container.cinema_service]),
 ):
@@ -32,7 +35,7 @@ async def detail_cinema(
 @cinema_router.post("/city")
 @inject
 async def create_city(
-    session: AsyncSession,
+    session: Annotated[AsyncSession, Depends(session_transaction)],
     data: CityDTO,
     service: CinemaService = Depends(Provide[Container.cinema_service]),
 ):
@@ -42,7 +45,7 @@ async def create_city(
 @cinema_router.post("/cinemas", status_code=204)
 @inject
 async def create_cinema(
-    session: AsyncSession,
+    session: Annotated[AsyncSession, Depends(session_transaction)],
     data: CinemaDTO,
     service: CinemaService = Depends(Provide[Container.cinema_service]),
 ):
@@ -52,7 +55,7 @@ async def create_cinema(
 @cinema_router.delete("/cinemas/{cinema_id}/delete", status_code=204)
 @inject
 async def drop_cinema(
-    session: AsyncSession,
+    session: Annotated[AsyncSession, Depends(session_transaction)],
     cinema_id: int,
     service: CinemaService = Depends(Provide[Container.cinema_service]),
 ):
@@ -62,7 +65,7 @@ async def drop_cinema(
 @cinema_router.patch("/cinemas/{cinema_id}/update")
 @inject
 async def update_cinema(
-    session: AsyncSession,
+    session: Annotated[AsyncSession, Depends(session_transaction)],
     cinema_id: int,
     data: UpdateCinemaDTO,
     service: CinemaService = Depends(Provide[Container.cinema_service]),

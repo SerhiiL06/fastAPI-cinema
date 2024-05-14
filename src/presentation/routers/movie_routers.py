@@ -18,9 +18,11 @@ async def get_movie_list(
     session: Annotated[session_transaction, Depends()],
     service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
     page: int = Query(1, gt=0),
+    text: str = Query(None),
+    year: int = Query(None),
 ):
 
-    return await service.fetch_all(page, session)
+    return await service.fetch_all(page, session, text, year)
 
 
 @movies_router.post("/movies")

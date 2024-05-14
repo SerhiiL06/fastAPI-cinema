@@ -20,11 +20,9 @@ class MovieServiceImpl(MovieService):
         self.image = image
 
     async def fetch_all(
-        self,
-        page: int,
-        session: AsyncSession,
+        self, page: int, session: AsyncSession, text: Optional[str], year: Optional[int]
     ) -> list[Movie]:
-        return await self.repo.find_all(page, session)
+        return await self.repo.find_all(page, session, text, year)
 
     async def add_movie(self, data: CreateMovieDto, image: UploadFile, session) -> int:
 

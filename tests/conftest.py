@@ -1,26 +1,21 @@
-import os
-import pathlib
-
 import pytest
 from alembic.command import downgrade, upgrade
 from alembic.config import Config as AlembicConfig
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import Engine, create_engine, text
-from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.exc import ProgrammingError
 
 from main import app
 from src.infrastructure.database.connections import session_transaction
 
-from .database import test_core
-
-ALEMBIC_CONFIG = pathlib.Path("alembic.ini")
+from .database import ALEMBIC_CONFIG, test_core
 
 
 @pytest.fixture(scope="session", autouse=True)
 def _migrate():
 
     alembic_cfg = AlembicConfig(ALEMBIC_CONFIG)
-    alembic_cfg.set_main_option("sqlalchemy.url", test_core.test_db_url_template())
+    alembic_cfg.set_main_option("sqlalchemy.url", test_core._db_url)
 
     upgrade(alembic_cfg, "head")
     yield
@@ -29,7 +24,7 @@ def _migrate():
 
 @pytest.fixture(scope="session")
 def postgres_template_db():
-    return test_core.test_db_url_template()
+    return test_core._db_url()
 
 
 @pytest.fixture(autouse=True, scope="session")

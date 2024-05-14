@@ -1,9 +1,12 @@
+from typing import Annotated
+
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from service.genre_service import GenreService
+from src.infrastructure.database.connections import session_transaction
 from src.presentation.dependency import Container
+from src.service.genre_service import GenreService
 
 genre_router = APIRouter(tags=["category"])
 
@@ -11,7 +14,7 @@ genre_router = APIRouter(tags=["category"])
 @genre_router.get("/categories")
 @inject
 async def fetch_genres(
-    session: AsyncSession,
+    session: Annotated[AsyncSession, Depends(session_transaction)],
     service: GenreService = Depends(Provide[Container.genre_service]),
 ):
     return await service.find_all(session)
@@ -20,7 +23,7 @@ async def fetch_genres(
 @genre_router.post("/categories")
 @inject
 async def fetch_categories(
-    session: AsyncSession,
+    session: Annotated[AsyncSession, Depends(session_transaction)],
     title: str,
     service: GenreService = Depends(Provide[Container.genre_service]),
 ):

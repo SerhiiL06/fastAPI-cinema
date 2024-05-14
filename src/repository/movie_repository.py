@@ -1,11 +1,10 @@
 from typing import Optional, Union
 
-from sqlalchemy import delete, extract, select
+from sqlalchemy import delete, extract, select, or_
 from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
 from sqlalchemy.orm import joinedload
 
-from src.infrastructure.database.models.movie import (Country, Genre, Movie,
-                                                      MovieGenre)
+from src.infrastructure.database.models.movie import Country, Genre, Movie, MovieGenre
 
 from .abstract import AbstractRepository
 from .actor_repository import ActorRepository
@@ -19,7 +18,13 @@ class MovieRepository(CountryRepository, AbstractRepository):
         self.actor_repo: ActorRepository = actor_repo
         self.genre_repo: GenreRepository = genres_repo
 
-    async def find_all(self, page: int, session: AsyncSession) -> list[Movie]:
+    async def find_all(
+        self,
+        page: int,
+        session: AsyncSession,
+        text: Optional[None],
+        year: Optional[int],
+    ) -> list[Movie]:
 
         offset = (page - 1) * 5
         q = (
@@ -38,6 +43,13 @@ class MovieRepository(CountryRepository, AbstractRepository):
             .offset(offset)
             .limit(5)
         )
+
+        if text:
+            q = q.where(Movie.title.icontains(text))
+
+        if year:
+            q = q.where(extract("YEAR", Movie.release_date) == year)
+
         result: AsyncResult = await session.execute(q)
 
         return result.mappings().all()
