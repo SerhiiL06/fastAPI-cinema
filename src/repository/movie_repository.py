@@ -24,6 +24,7 @@ class MovieRepository(CountryRepository, AbstractRepository):
         session: AsyncSession,
         text: Optional[None],
         year: Optional[int],
+        genre: Optional[str],
     ) -> list[Movie]:
 
         offset = (page - 1) * 5
@@ -49,6 +50,9 @@ class MovieRepository(CountryRepository, AbstractRepository):
 
         if year:
             q = q.where(extract("YEAR", Movie.release_date) == year)
+
+        if genre:
+            q = q.where(Genre.title.icontains(genre))
 
         result: AsyncResult = await session.execute(q)
 

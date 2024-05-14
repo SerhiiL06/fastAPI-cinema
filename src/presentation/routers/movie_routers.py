@@ -20,9 +20,10 @@ async def get_movie_list(
     page: int = Query(1, gt=0),
     text: str = Query(None),
     year: int = Query(None),
+    genre: str = Query(None),
 ):
 
-    return await service.fetch_all(page, session, text, year)
+    return await service.fetch_all(page, session, text, year, genre)
 
 
 @movies_router.post("/movies")
