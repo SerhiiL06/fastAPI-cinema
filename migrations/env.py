@@ -7,6 +7,7 @@ from sqlalchemy import engine_from_config, pool
 
 from src.infrastructure.database.models.base import Base
 from src.infrastructure.database.models.cinema import Cinema, City
+from src.infrastructure.database.models.users import User
 from src.infrastructure.database.models.movie import *
 from src.presentation.dependency import Container
 

@@ -1,7 +1,7 @@
 from typing import Optional, Union
 
 from fastapi import HTTPException
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import delete, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.database.models.base import Base

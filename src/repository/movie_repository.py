@@ -1,6 +1,6 @@
 from typing import Optional, Union
 
-from sqlalchemy import delete, extract, select, or_
+from sqlalchemy import delete, extract, select
 from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
 from sqlalchemy.orm import joinedload
 
