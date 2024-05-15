@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fastapi import HTTPException
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import delete, insert, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 

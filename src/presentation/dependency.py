@@ -5,11 +5,13 @@ from src.repository.actor_repository import ActorRepository
 from src.repository.cinema_repository import CinemaRepository
 from src.repository.genre_repository import GenreRepository
 from src.repository.movie_repository import MovieRepository
+from src.repository.user_repository import UserRepository
 from src.service.actor_service import ActorService
 from src.service.cinema_service import CinemaService
 from src.service.genre_service import GenreService
 from src.service.image_service import ImageService
 from src.service.impl.movie_service_impl import MovieServiceImpl
+from src.service.impl.user_service_impl import UserServiceImpl
 
 
 class Container(containers.DeclarativeContainer):
@@ -36,3 +38,6 @@ class Container(containers.DeclarativeContainer):
 
     movie_repo = providers.Factory(MovieRepository, actor_repo, genre_repo)
     movie_service = providers.Factory(MovieServiceImpl, movie_repo, image_service)
+
+    user_repo = providers.Factory(UserRepository)
+    user_service = providers.Factory(UserServiceImpl, repo=user_repo)

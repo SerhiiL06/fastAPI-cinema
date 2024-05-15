@@ -16,7 +16,10 @@ class UserServiceImpl(UserService):
 
     async def register(self, user_data: RegisterUserDto, session: AsyncSession):
         self.validate_user(user_data)
-        await self.repo.create(asdict(user_data), session)
+
+        user_id = await self.repo.create(asdict(user_data), session)
+
+        return {"user_id": user_id}
 
     @classmethod
     def validate_user(
@@ -33,10 +36,10 @@ class UserServiceImpl(UserService):
         if pw_service.compare(data.password1, data.password2):
             errors["password"] = "compare password error"
 
-        if errors:
-            raise HTTPException(400, errors)
-
         password_incorrect = pw_service.validate_password(data.password1)
 
         if password_incorrect:
-            raise HTTPException(400, password_incorrect)
+            errors["password_format"] = password_incorrect
+
+        if errors:
+            raise HTTPException(400, errors)
