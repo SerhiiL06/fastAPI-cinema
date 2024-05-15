@@ -2,6 +2,7 @@ from typing import Optional
 
 from fastapi import HTTPException
 from sqlalchemy import delete, insert, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.database.models.users import User
@@ -13,11 +14,13 @@ class UserRepository(AbstractRepository):
 
     async def create(self, data: dict, session: AsyncSession) -> int:
         q = insert(User).values(data).returning(User.id)
+        try:
+            user_id = await session.execute(q)
+            await session.commit()
 
-        user_id = await session.execute(q)
-        await session.commit()
-
-        return user_id
+            return user_id
+        except IntegrityError as e:
+            raise HTTPException(400, f"user with this email already exists")
 
     async def find_by_id(self, entity_id: int, session: AsyncSession) -> Optional[User]:
 
