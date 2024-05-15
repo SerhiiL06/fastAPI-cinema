@@ -12,6 +12,8 @@ class User(Base):
     nickname: Mapped[str] = mapped_column(String(20), unique=True, index=True)
     email: Mapped[str] = mapped_column(String(320), unique=True)
 
+    hashed_password: Mapped[str]
+
     verificate: Mapped[bool] = mapped_column(default=False)
     is_active: Mapped[bool] = mapped_column(default=True)
 

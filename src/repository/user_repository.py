@@ -11,6 +11,14 @@ from .abstract import AbstractRepository
 
 class UserRepository(AbstractRepository):
 
+    async def create(self, data: dict, session: AsyncSession) -> int:
+        q = insert(User).values(data).returning(User.id)
+
+        user_id = await session.execute(q)
+        await session.commit()
+
+        return user_id
+
     async def find_by_id(self, entity_id: int, session: AsyncSession) -> Optional[User]:
 
         result = await session.get(User, entity_id)
