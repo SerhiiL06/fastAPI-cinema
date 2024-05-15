@@ -4,7 +4,8 @@ from sqlalchemy import delete, extract, select
 from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
 from sqlalchemy.orm import joinedload
 
-from src.infrastructure.database.models.movie import Country, Genre, Movie, MovieGenre
+from src.infrastructure.database.models.movie import (Country, Genre, Movie,
+                                                      MovieGenre)
 
 from .abstract import AbstractRepository
 from .actor_repository import ActorRepository
