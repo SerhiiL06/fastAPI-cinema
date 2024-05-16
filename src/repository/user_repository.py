@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Optional, Union
 
 from fastapi import HTTPException
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, insert, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,18 +18,35 @@ class UserRepository(AbstractRepository):
             user_id = await session.execute(q)
             await session.commit()
 
-            return user_id
+            return user_id.scalar()
         except IntegrityError as e:
             raise HTTPException(400, f"user with this email already exists")
 
     async def find_by_id(self, entity_id: int, session: AsyncSession) -> Optional[User]:
+        return await self._find_by_field(entity_id, session)
 
-        result = await session.get(User, entity_id)
+    async def find_by_email(self, email: str, session: AsyncSession):
+        return await self._find_by_field(email, session)
 
-        if result is None:
-            raise HTTPException(404, "user doesn't exists")
+    async def find_by_nickname(self, nickname: str, session: AsyncSession):
+        return await self._find_by_field(nickname, session)
 
-        return result
+    async def _find_by_field(
+        self, search_field: Union[str, int], session: AsyncSession
+    ):
+        q = select(User)
+
+        if isinstance(search_field, str):
+            q = q.where(or_(User.email == search_field, User.nickname == search_field))
+        else:
+            q = q.where(User.id == search_field)
+
+        result = await session.execute(q)
+
+        to_return = result.scalars().one_or_none()
+
+        if to_return is None:
+            raise HTTPException(404, "user doesnt exists")
 
     async def find_all(self, session: AsyncSession) -> list[User]:
 
@@ -45,6 +62,8 @@ class UserRepository(AbstractRepository):
 
         user_instance.email = data.get("email", user_instance.email)
         user_instance.nickname = data.get("nickname", user_instance.nickname)
+        user_instance.is_active = data.get("is_active", user_instance.is_active)
+        user_instance.verificate = data.get("verificate", user_instance.verificate)
 
         await session.commit()
         await session.refresh(user_instance)

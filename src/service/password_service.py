@@ -1,7 +1,5 @@
 import string
-from typing import Optional
 
-from fastapi import HTTPException
 from passlib.context import CryptContext
 
 
@@ -18,7 +16,7 @@ class PasswordService:
 
         for el in pw:
             if el.isupper():
-                checker["upper"] -= 1
+                checker["upper_case"] -= 1
             elif el in string.punctuation:
                 checker["punct"] -= 1
             elif el.isdigit():
@@ -30,10 +28,10 @@ class PasswordService:
 
         return password_errors
 
-    def compare(self, first: str, second: str):
+    def compare(self, first: str, second: str) -> bool:
         return first == second
 
-    def hashing(self, pw: str):
+    def hashing(self, pw: str) -> str:
         return self.__bcrypt.hash(pw)
 
     def verify(self, new: str, old: str) -> str:

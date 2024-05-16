@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends
 from typing import Annotated
-from src.presentation.mappings.user import RegisterUserDto
-from src.service.impl.user_service_impl import UserService
-from src.service.impl.user_service_impl import UserServiceImpl
-from src.infrastructure.database.connections import session_transaction
+
+from dependency_injector.wiring import Provide, inject
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.infrastructure.database.connections import session_transaction
 from src.presentation.dependency import Container
-from dependency_injector.wiring import inject, Provide
+from src.presentation.mappings.user import RegisterUserDto
+from src.service.impl.user_service_impl import UserService, UserServiceImpl
 
 users_router = APIRouter(tags=["users"])
 
