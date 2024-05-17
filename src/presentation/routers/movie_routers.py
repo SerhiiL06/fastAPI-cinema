@@ -4,7 +4,7 @@ from typing import Annotated
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Body, Depends, File, Query, UploadFile
 
-from src.infrastructure.database.connections import session_transaction
+from src.common.factories import current_user, session_factory
 from src.presentation.dependency import Container
 from src.presentation.mappings.movie import CreateMovieDto, UpdateMovieDto
 from src.service.impl.movie_service_impl import MovieServiceImpl
@@ -15,7 +15,7 @@ movies_router = APIRouter(tags=["movie"])
 @movies_router.get("/movies")
 @inject
 async def get_movie_list(
-    session: Annotated[session_transaction, Depends()],
+    session: session_factory,
     service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
     page: int = Query(1, gt=0),
     text: str = Query(None),
@@ -29,7 +29,7 @@ async def get_movie_list(
 @movies_router.post("/movies")
 @inject
 async def create_movie(
-    session: Annotated[session_transaction, Depends()],
+    session: session_factory,
     image: UploadFile = File(),
     title: str = Body(),
     description: str = Body(),
@@ -56,7 +56,7 @@ async def create_movie(
 @inject
 async def retrive_movie_by_id(
     movie_id: int,
-    session: Annotated[session_transaction, Depends()],
+    session: session_factory,
     service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
 ):
     return await service.fetch_by_id(movie_id, session)
@@ -66,7 +66,7 @@ async def retrive_movie_by_id(
 @inject
 async def retrive_movie_by_slug(
     movie_slug: str,
-    session: Annotated[session_transaction, Depends()],
+    session: session_factory,
     service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
 ):
     return await service.fetch_by_slug(movie_slug, session)
@@ -76,7 +76,7 @@ async def retrive_movie_by_slug(
 @inject
 async def update_movie(
     movie_id: int,
-    session: Annotated[session_transaction, Depends()],
+    session: session_factory,
     image: UploadFile = File(None),
     title: str = Body(None),
     description: str = Body(None),

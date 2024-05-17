@@ -1,11 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
 
+from src.infrastructure.database.models.base import Base
 from src.presentation.dependency import Container
 from src.presentation.routers.actor_routers import actor_routers
 from src.presentation.routers.cinema_routers import cinema_router
 from src.presentation.routers.genre_routers import genre_router
 from src.presentation.routers.movie_routers import movies_router
 from src.presentation.routers.user_routers import users_router
+from src.repository.exceptions.exc import DoesntExists
 
 
 def application():
@@ -29,3 +32,13 @@ def application():
 
 
 app = application()
+
+
+@app.exception_handler(DoesntExists)
+def doesnt_exists(request: Request, exc: DoesntExists):
+    error_text = f"{exc.model} doesnt exists"
+    resp = JSONResponse(
+        content={"code": "400", "msg": error_text},
+        status_code=status.HTTP_404_NOT_FOUND,
+    )
+    return resp

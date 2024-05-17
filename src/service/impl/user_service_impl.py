@@ -55,7 +55,6 @@ class UserServiceImpl(UserService):
 
     @staticmethod
     def is_correct_email(email: str) -> bool:
-        print(re.fullmatch(r"[a-z]{1,}@gmail.com", email))
         return bool(re.fullmatch(r"[a-z]{1,}@gmail.com", email))
 
     @staticmethod

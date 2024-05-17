@@ -10,6 +10,7 @@ from src.infrastructure.database.models.movie import (Country, Genre, Movie,
 from .abstract import AbstractRepository
 from .actor_repository import ActorRepository
 from .country_repository import CountryRepository
+from .exceptions.exc import DoesntExists
 from .genre_repository import GenreRepository
 
 
@@ -86,7 +87,12 @@ class MovieRepository(CountryRepository, AbstractRepository):
 
         result = await session.execute(q)
 
-        return result.scalars().unique().one()
+        instance = result.scalars().unique().one_or_none()
+
+        if instance is None:
+            raise DoesntExists(model=Movie)
+
+        return instance
 
     async def create(self, data: dict, session) -> int:
 

@@ -3,10 +3,9 @@ from typing import Annotated
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.infrastructure.database.connections import session_transaction
-from src.presentation.dependency import Container, auth
+from src.common.factories import current_user, session_factory
+from src.presentation.dependency import Container
 from src.presentation.mappings.user import RegisterUserDto
 from src.service.impl.auth_service import AuthService
 from src.service.impl.user_service_impl import UserServiceImpl
@@ -18,7 +17,7 @@ users_router = APIRouter(tags=["users"])
 @inject
 async def register(
     data: RegisterUserDto,
-    session: Annotated[AsyncSession, Depends(session_transaction)],
+    session: session_factory,
     service: UserServiceImpl = Depends(Provide[Container.user_service]),
 ):
     return await service.register(data, session)
@@ -27,7 +26,7 @@ async def register(
 @users_router.get("/users")
 @inject
 async def register(
-    session: Annotated[AsyncSession, Depends(session_transaction)],
+    session: session_factory,
     service: UserServiceImpl = Depends(Provide[Container.user_service]),
 ):
     return await service.fetch_users(session)
@@ -36,7 +35,7 @@ async def register(
 @users_router.post("/users/login")
 @inject
 async def login(
-    session: Annotated[AsyncSession, Depends(session_transaction)],
+    session: session_factory,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     service: AuthService = Depends(Provide[Container.auth_service]),
 ):
@@ -45,7 +44,5 @@ async def login(
 
 
 @users_router.get("/testing")
-async def some(
-    current_user: Annotated[dict, Depends(auth.authenticate)],
-):
-    print(current_user)
+async def some(user: current_user):
+    print(user)
