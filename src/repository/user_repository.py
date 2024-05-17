@@ -1,7 +1,7 @@
 from typing import Optional, Union
 
 from fastapi import HTTPException
-from sqlalchemy import delete, insert, or_, select
+from sqlalchemy import Date, cast, delete, insert, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,7 +28,9 @@ class UserRepository(AbstractRepository):
     async def find_by_email(self, email: str, session: AsyncSession):
         return await self._find_by_field(email, session)
 
-    async def find_by_nickname(self, nickname: str, session: AsyncSession):
+    async def find_by_nickname(
+        self, nickname: str, session: AsyncSession
+    ) -> Optional[User]:
         return await self._find_by_field(nickname, session)
 
     async def _find_by_field(
@@ -48,13 +50,23 @@ class UserRepository(AbstractRepository):
         if to_return is None:
             raise HTTPException(404, "user doesnt exists")
 
+        return to_return
+
     async def find_all(self, session: AsyncSession) -> list[User]:
 
-        q = select(User)
+        q = select(
+            User.id,
+            User.email,
+            User.nickname,
+            cast(User.joined_at, Date),
+            User.is_active,
+            User.verificate,
+            User.role,
+        )
 
         users = await session.execute(q)
 
-        return users.scalars().all()
+        return users.mappings().all()
 
     async def update(self, entity_id: int, data: dict, session: AsyncSession) -> User:
 

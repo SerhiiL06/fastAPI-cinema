@@ -34,6 +34,5 @@ class PasswordService:
     def hashing(self, pw: str) -> str:
         return self.__bcrypt.hash(pw)
 
-    def verify(self, new: str, old: str) -> str:
-        new_pw = self.__bcrypt.verify_and_update(new, old)
-        return new_pw
+    def verify(self, secret: str, hashed: str) -> bool:
+        return self.__bcrypt.verify(secret, hashed)

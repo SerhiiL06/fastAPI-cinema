@@ -10,8 +10,11 @@ from src.service.actor_service import ActorService
 from src.service.cinema_service import CinemaService
 from src.service.genre_service import GenreService
 from src.service.image_service import ImageService
+from src.service.impl.auth_service import AuthService
 from src.service.impl.movie_service_impl import MovieServiceImpl
+from src.service.impl.token_service import TokenService
 from src.service.impl.user_service_impl import UserServiceImpl
+from src.service.password_service import PasswordService
 
 
 class Container(containers.DeclarativeContainer):
@@ -41,3 +44,15 @@ class Container(containers.DeclarativeContainer):
 
     user_repo = providers.Factory(UserRepository)
     user_service = providers.Factory(UserServiceImpl, repo=user_repo)
+
+    password_service = providers.Factory(PasswordService)
+    token_service = providers.Factory(TokenService)
+    auth_service = providers.Factory(
+        AuthService, user_repo, password_service, token_service
+    )
+
+
+container = Container()
+
+
+auth = container.auth_service()
