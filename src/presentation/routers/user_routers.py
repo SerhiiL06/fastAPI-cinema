@@ -32,7 +32,7 @@ async def register(
     return await service.fetch_users(session)
 
 
-@users_router.post("/users/login")
+@users_router.post("/users/login", tags=["auth"])
 @inject
 async def login(
     session: session_factory,
@@ -41,8 +41,3 @@ async def login(
 ):
 
     return await service.login(form_data.username, form_data.password, session)
-
-
-@users_router.get("/testing")
-async def some(user: current_user):
-    print(user)

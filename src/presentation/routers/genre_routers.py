@@ -11,16 +11,26 @@ from src.service.genre_service import GenreService
 genre_router = APIRouter(tags=["category"])
 
 
-@genre_router.get("/categories")
+@genre_router.get("/genres")
 @inject
 async def fetch_genres(
     session: session_factory,
     service: GenreService = Depends(Provide[Container.genre_service]),
 ):
-    return await service.find_all(session)
+    return await service.fetch_all(session)
 
 
-@genre_router.post("/categories")
+@genre_router.get("/genres/{genre_id}")
+@inject
+async def fetch_genres(
+    genre_id: int,
+    session: session_factory,
+    service: GenreService = Depends(Provide[Container.genre_service]),
+):
+    return await service.fetch_by_id(genre_id, session)
+
+
+@genre_router.post("/genres")
 @inject
 async def fetch_categories(
     session: session_factory,

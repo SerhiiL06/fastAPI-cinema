@@ -15,3 +15,9 @@ class GenreService:
         category = await self.repo.create(title, session)
 
         return {"id": category}
+
+    async def fetch_by_id(self, genre_id: int, session: AsyncSession):
+
+        genre = await self.repo.find_by_id(genre_id, session)
+
+        return {"genre": genre}

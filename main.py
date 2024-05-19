@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from src.infrastructure.database.models.base import Base
 from src.presentation.dependency import Container
 from src.presentation.routers.actor_routers import actor_routers
 from src.presentation.routers.cinema_routers import cinema_router

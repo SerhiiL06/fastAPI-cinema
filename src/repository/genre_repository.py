@@ -3,9 +3,10 @@ from typing import Optional, Union
 from fastapi import HTTPException
 from sqlalchemy import delete, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload, selectinload
 
 from src.infrastructure.database.models.base import Base
-from src.infrastructure.database.models.movie import Genre
+from src.infrastructure.database.models.movie import Genre, Movie
 
 from .abstract import AbstractRepository
 
@@ -13,11 +14,11 @@ from .abstract import AbstractRepository
 class GenreRepository(AbstractRepository):
 
     async def find_all(self, session: AsyncSession) -> list[Base]:
-        q = select(Genre)
+        q = select(Genre).options(joinedload(Genre.movies))
 
         result = await session.execute(q)
 
-        return result.scalars().all()
+        return result.scalars().unique().all()
 
     async def create(self, title: str, session: AsyncSession) -> int:
         q = insert(Genre).values(title=title).returning(Genre.id)
@@ -29,7 +30,11 @@ class GenreRepository(AbstractRepository):
     async def find_by_id(
         self, entity_id: int, session: AsyncSession
     ) -> Optional[Genre]:
-        genre = await session.get(Genre, entity_id)
+        genre = await session.get(
+            Genre,
+            entity_id,
+            options=[selectinload(Genre.movies).load_only(Movie.title, Movie.id)],
+        )
 
         if genre is None:
             raise HTTPException(400, f"genre with {id} doesnt exists")

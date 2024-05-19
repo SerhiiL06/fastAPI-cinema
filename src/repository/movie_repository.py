@@ -34,6 +34,7 @@ class MovieRepository(CountryRepository, AbstractRepository):
             select(
                 Movie.id,
                 Movie.title,
+                Movie.slug,
                 extract("YEAR", Movie.release_date).label("year"),
                 Genre.title.label("genre"),
                 Country.name.label("country"),
