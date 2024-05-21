@@ -35,7 +35,7 @@ app = application()
 
 @app.exception_handler(DoesntExists)
 def doesnt_exists(request: Request, exc: DoesntExists):
-    error_text = f"{exc.model} doesnt exists"
+    error_text = f"{exc.model} with value {exc.ident} doesnt exists"
     resp = JSONResponse(
         content={"code": "400", "msg": error_text},
         status_code=status.HTTP_404_NOT_FOUND,

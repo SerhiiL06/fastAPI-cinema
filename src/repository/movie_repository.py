@@ -91,7 +91,7 @@ class MovieRepository(CountryRepository, AbstractRepository):
         instance = result.scalars().unique().one_or_none()
 
         if instance is None:
-            raise DoesntExists(model=Movie)
+            raise DoesntExists(model=Movie, ident=search_arg)
 
         return instance
 
