@@ -19,7 +19,7 @@ class CommentRepository(AbstractRepository):
 
         await session.commit()
 
-        return res
+        return res.scalar()
 
     async def delete(self, entity_id: int, session: AsyncSession) -> None:
         comment = await session.get(Comment, entity_id)

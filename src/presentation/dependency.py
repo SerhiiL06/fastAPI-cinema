@@ -3,6 +3,7 @@ from dependency_injector import containers, providers
 from src.infrastructure.database.connections import DatabaseCORE
 from src.repository.actor_repository import ActorRepository
 from src.repository.cinema_repository import CinemaRepository
+from src.repository.comment_repository import CommentRepository
 from src.repository.genre_repository import GenreRepository
 from src.repository.movie_repository import MovieRepository
 from src.repository.user_repository import UserRepository
@@ -11,6 +12,7 @@ from src.service.cinema_service import CinemaService
 from src.service.genre_service import GenreService
 from src.service.image_service import ImageService
 from src.service.impl.auth_service import AuthService
+from src.service.impl.comment_service_impl import CommentServiceImpl
 from src.service.impl.movie_service_impl import MovieServiceImpl
 from src.service.impl.token_service import TokenService
 from src.service.impl.user_service_impl import UserServiceImpl
@@ -50,6 +52,10 @@ class Container(containers.DeclarativeContainer):
     auth_service = providers.Factory(
         AuthService, user_repo, password_service, token_service
     )
+
+    comment_repo = providers.Factory(CommentRepository)
+
+    comment_service = providers.Factory(CommentServiceImpl, comment_repo, movie_repo)
 
 
 container = Container()

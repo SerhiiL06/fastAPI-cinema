@@ -1,12 +1,14 @@
+from dataclasses import asdict
 from datetime import date
-from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Body, Depends, File, Query, UploadFile
 
 from src.common.factories import current_user, session_factory
 from src.presentation.dependency import Container
+from src.presentation.mappings.comment import CreateCommentDto
 from src.presentation.mappings.movie import CreateMovieDto, UpdateMovieDto
+from src.service.impl.comment_service_impl import CommentServiceImpl
 from src.service.impl.movie_service_impl import MovieServiceImpl
 
 movies_router = APIRouter(tags=["movie"])
@@ -99,3 +101,17 @@ async def update_movie(
     )
 
     return await service.update_movie(movie_id, data, session, image)
+
+
+@movies_router.post("/movies/{movie_id}/comment")
+@inject
+async def comment_movie(
+    user: current_user,
+    movie_id: int,
+    comment: CreateCommentDto,
+    session: session_factory,
+    service: CommentServiceImpl = Depends(Provide[Container.comment_service]),
+):
+    return await service.add_comment(
+        user.get("user_id"), movie_id, asdict(comment), session
+    )

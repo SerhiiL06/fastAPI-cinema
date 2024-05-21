@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.database.models.movie import Movie
 from src.presentation.mappings.movie import CreateMovieDto, UpdateMovieDto
+from src.repository.comment_repository import CommentRepository
 from src.repository.movie_repository import MovieRepository
 from src.service.image_service import ImageService
 from src.service.movie_service import MovieService

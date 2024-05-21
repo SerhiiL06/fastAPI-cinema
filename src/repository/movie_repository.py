@@ -4,8 +4,10 @@ from sqlalchemy import delete, extract, select
 from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
 from sqlalchemy.orm import joinedload
 
+from src.infrastructure.database.models.comments import Comment
 from src.infrastructure.database.models.movie import (Country, Genre, Movie,
                                                       MovieGenre)
+from src.infrastructure.database.models.users import User
 
 from .abstract import AbstractRepository
 from .actor_repository import ActorRepository
@@ -79,6 +81,9 @@ class MovieRepository(CountryRepository, AbstractRepository):
             joinedload(Movie.country).load_only(Country.name),
             joinedload(Movie.genres),
             joinedload(Movie.actors),
+            joinedload(Movie.comments).options(
+                joinedload(Comment.author).load_only(User.nickname)
+            ),
         )
 
         if isinstance(search_arg, int):
