@@ -8,7 +8,7 @@ from src.repository.user_repository import UserRepository
 from src.service.impl.token_service import TokenService
 from src.service.password_service import PasswordService
 
-bearer = OAuth2PasswordBearer(tokenUrl="users/login")
+bearer = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 class AuthService:

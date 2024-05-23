@@ -2,7 +2,9 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from src.presentation.dependency import Container
+from src.presentation.exceptions.exc import PermissionDanied
 from src.presentation.routers.actor_routers import actor_routers
+from src.presentation.routers.auth_routers import auth_routers
 from src.presentation.routers.cinema_routers import cinema_router
 from src.presentation.routers.genre_routers import genre_router
 from src.presentation.routers.movie_routers import movies_router
@@ -13,8 +15,9 @@ from src.repository.exceptions.exc import DoesntExists
 def application():
 
     app = FastAPI()
-    app.include_router(cinema_router)
     app.include_router(actor_routers)
+    app.include_router(auth_routers)
+    app.include_router(cinema_router)
     app.include_router(genre_router)
     app.include_router(movies_router)
     app.include_router(users_router)
@@ -39,5 +42,15 @@ def doesnt_exists(request: Request, exc: DoesntExists):
     resp = JSONResponse(
         content={"code": "400", "msg": error_text},
         status_code=status.HTTP_404_NOT_FOUND,
+    )
+    return resp
+
+
+@app.exception_handler(PermissionDanied)
+def doesnt_exists(request: Request, exc: PermissionDanied):
+    error_text = "You don't have permission for this action"
+    resp = JSONResponse(
+        content={"code": "403", "msg": error_text},
+        status_code=status.HTTP_403_FORBIDDEN,
     )
     return resp
