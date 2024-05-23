@@ -53,6 +53,17 @@ async def update_profile(
     return await service.update_profile(user.get("user_id"), asdict(data), session)
 
 
+@users_router.patch("/profile/set-password")
+@inject
+async def change_password(
+    user: current_user,
+    data: user_mapping.SetPasswordDto,
+    session: session_factory,
+    service: UserServiceImpl = Depends(Provide[Container.user_service]),
+):
+    return await service.set_password(user.get("user_id"), data, session)
+
+
 @users_router.get("/{user_id}/profile")
 @check_role(["regular"])
 @inject

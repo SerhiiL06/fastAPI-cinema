@@ -29,3 +29,10 @@ class DetailProfileDto(ProfileUserDto):
     is_active: bool
     joined_at: datetime
     role: str
+
+
+@dataclass
+class SetPasswordDto:
+    old_password: str
+    new_password1: str
+    new_password2: str

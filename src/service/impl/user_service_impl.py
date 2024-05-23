@@ -1,10 +1,10 @@
 from dataclasses import asdict
 
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.common.logic import clear_none
-from src.presentation.mappings.user import (DetailProfileDto, ProfileUserDto,
-                                            RegisterUserDto)
+from src.presentation.mappings import user as mapping
 from src.repository.user_repository import UserRepository
 from src.service.password_service import PasswordService
 from src.service.user_service import UserService
@@ -17,7 +17,7 @@ class UserServiceImpl(UserService):
 
     async def register(
         self,
-        user_data: RegisterUserDto,
+        user_data: mapping.RegisterUserDto,
         session: AsyncSession,
         password: PasswordService = PasswordService(),
         validate: UserValidateService = UserValidateService(),
@@ -38,7 +38,7 @@ class UserServiceImpl(UserService):
 
     async def fetch_user_info(self, user_id: int, session: AsyncSession):
         user = await self.repo.find_by_id(user_id, session)
-        user_dto = DetailProfileDto(
+        user_dto = mapping.DetailProfileDto(
             user.nickname,
             user.email,
             user.verificate,
@@ -51,7 +51,7 @@ class UserServiceImpl(UserService):
     async def profile_page(self, user_id: int, session: AsyncSession):
         user = await self.repo.find_by_id(user_id, session)
 
-        return {"profile": ProfileUserDto(user.nickname, user.email)}
+        return {"profile": mapping.ProfileUserDto(user.nickname, user.email)}
 
     async def block_user(self, user_id, session: AsyncSession):
         block = {"is_active": False}
@@ -73,5 +73,31 @@ class UserServiceImpl(UserService):
         validate.validate_user(user_data)
 
         updated_user = await self.repo.update(user_id, user_data, session)
+        profile_dto = mapping.ProfileUserDto(updated_user.nickname, updated_user.email)
+        return {"profile": profile_dto}
 
-        return {"profile": ProfileUserDto(updated_user.nickname, updated_user.email)}
+    async def set_password(
+        self,
+        user_id: int,
+        pw: mapping.SetPasswordDto,
+        session: AsyncSession,
+        pw_service: PasswordService = PasswordService(),
+    ):
+
+        has_errors = pw_service.validate_password(pw.new_password1, pw.new_password2)
+
+        if has_errors:
+            raise HTTPException(400, has_errors)
+
+        user = await self.repo.find_by_id(user_id, session)
+
+        check_password = pw_service.verify(pw.old_password, user.hashed_password)
+
+        if check_password is False:
+            raise HTTPException(400, "incorrect old password")
+
+        hashed_password = pw_service.hashing(pw.new_password1)
+
+        await self.repo.update_password(user_id, hashed_password, session)
+
+        return {"update": "ok"}

@@ -30,3 +30,7 @@ class UserService(ABC):
     @abstractmethod
     def delete_user(self):
         raise NotImplementedError()
+
+    @abstractmethod
+    def set_password(self):
+        raise NotImplementedError()

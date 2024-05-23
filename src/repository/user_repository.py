@@ -1,7 +1,7 @@
 from typing import Optional, Union
 
 from fastapi import HTTPException
-from sqlalchemy import Date, cast, delete, insert, or_, select
+from sqlalchemy import Date, cast, delete, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -94,4 +94,12 @@ class UserRepository(AbstractRepository):
         instance = await self._find_by_field(entity_id, session)
 
         await session.delete(instance)
+        await session.commit()
+
+    async def update_password(
+        self, user_id: int, new_password: str, session: AsyncSession
+    ) -> None:
+        q = update(User).where(User.id == user_id).values(hashed_password=new_password)
+
+        await session.execute(q)
         await session.commit()
