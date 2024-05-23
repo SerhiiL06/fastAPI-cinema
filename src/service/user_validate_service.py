@@ -1,7 +1,9 @@
+import re
+
+from fastapi import HTTPException
+
 from src.presentation.mappings.user import RegisterUserDto
 from src.service.password_service import PasswordService
-import re
-from fastapi import HTTPException
 
 
 class UserValidateService:

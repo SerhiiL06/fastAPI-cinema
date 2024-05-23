@@ -1,14 +1,14 @@
 import re
 from dataclasses import asdict
 
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.presentation.mappings.user import RegisterUserDto
+from src.presentation.mappings.user import (DetailProfileDto, ProfileUserDto,
+                                            RegisterUserDto)
 from src.repository.user_repository import UserRepository
 from src.service.password_service import PasswordService
-from src.service.user_validate_service import UserValidateService
 from src.service.user_service import UserService
+from src.service.user_validate_service import UserValidateService
 
 
 class UserServiceImpl(UserService):
@@ -39,13 +39,20 @@ class UserServiceImpl(UserService):
 
     async def fetch_user_info(self, user_id: int, session: AsyncSession):
         user = await self.repo.find_by_id(user_id, session)
-
-        return {"user": user}
+        user_dto = DetailProfileDto(
+            user.nickname,
+            user.email,
+            user.verificate,
+            user.is_active,
+            user.joined_at,
+            user.role,
+        )
+        return {"user": user_dto}
 
     async def profile_page(self, user_id: int, session: AsyncSession):
         user = await self.repo.find_by_id(user_id, session)
 
-        return {"profile": user}
+        return {"profile": ProfileUserDto(user.nickname, user.email)}
 
     async def block_user(self, user_id, session: AsyncSession):
         block = {"is_active": False}
