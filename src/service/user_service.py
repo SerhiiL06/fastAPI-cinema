@@ -16,6 +16,10 @@ class UserService(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def profile_page(self):
+        raise NotImplementedError()
+
+    @abstractmethod
     def block_user(self):
         raise NotImplementedError()
 

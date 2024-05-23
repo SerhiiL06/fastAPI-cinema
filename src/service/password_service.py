@@ -6,15 +6,19 @@ from passlib.context import CryptContext
 class PasswordService:
     __bcrypt = CryptContext(schemes="bcrypt")
 
-    def validate_password(self, pw: str) -> dict:
+    def validate_password(self, pw1: str, pw2: str) -> dict:
         password_errors = {}
 
-        if len(pw) < 8:
+        if not self.compare(pw1, pw2):
+            password_errors["password"] = "compare password error"
+            return password_errors
+
+        if len(pw1) < 8:
             password_errors["length"] = "password mush have min 8 length"
 
         checker = {"upper_case": 1, "punct": 1, "nums": 1}
 
-        for el in pw:
+        for el in pw1:
             if el.isupper():
                 checker["upper_case"] -= 1
             elif el in string.punctuation:
