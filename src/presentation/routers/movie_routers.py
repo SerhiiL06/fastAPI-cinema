@@ -5,6 +5,7 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Body, Depends, File, Query, UploadFile
 
 from src.common.factories import current_user, session_factory
+from src.common.permissions import check_role
 from src.presentation.dependency import Container
 from src.presentation.mappings.comment import CreateCommentDto
 from src.presentation.mappings.movie import CreateMovieDto, UpdateMovieDto
@@ -115,3 +116,15 @@ async def comment_movie(
     return await service.add_comment(
         user.get("user_id"), movie_id, asdict(comment), session
     )
+
+
+@movies_router.delete("/movies/{comment_id}/delete")
+@check_role(["regular"])
+@inject
+async def drop_comment(
+    user: current_user,
+    comment_id: int,
+    session: session_factory,
+    service: CommentServiceImpl = Depends(Provide[Container.comment_service]),
+):
+    return await service.delete_comment(comment_id, session)

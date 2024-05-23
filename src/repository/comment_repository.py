@@ -28,6 +28,7 @@ class CommentRepository(AbstractRepository):
             raise DoesntExists(Comment, entity_id)
 
         await session.delete(comment)
+        await session.commit()
 
     async def find_all(self, movie_id: int, session: AsyncSession) -> list[Base]:
         q = (
@@ -36,6 +37,13 @@ class CommentRepository(AbstractRepository):
             .options(selectinload(Comment.author).load_only(User.nickname, User.id))
             .order_by(Comment.created_at.desc())
         )
+
+        result = await session.execute(q)
+
+        return result.scalars().all()
+
+    async def find_comments_by_user(self, user_id: int, session: AsyncSession):
+        q = select(Comment).where(Comment.author_id == user_id)
 
         result = await session.execute(q)
 
