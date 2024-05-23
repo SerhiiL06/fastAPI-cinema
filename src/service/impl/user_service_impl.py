@@ -1,8 +1,8 @@
-import re
 from dataclasses import asdict
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.common.logic import clear_none
 from src.presentation.mappings.user import (DetailProfileDto, ProfileUserDto,
                                             RegisterUserDto)
 from src.repository.user_repository import UserRepository
@@ -23,9 +23,8 @@ class UserServiceImpl(UserService):
         validate: UserValidateService = UserValidateService(),
     ):
 
-        validate.validate_user(user_data, password)
-
         user_dict = asdict(user_data)
+        validate.validate_user(user_dict, password)
         user_dict["hashed_password"] = password.hashing(user_dict.pop("password1"))
         user_dict.pop("password2")
         user_id = await self.repo.create(user_dict, session)
@@ -62,5 +61,17 @@ class UserServiceImpl(UserService):
     async def delete_user(self, user_id: int, session: AsyncSession) -> None:
         await self.repo.delete(user_id, session)
 
-    async def update_profile(self, user_id: int, session: AsyncSession):
-        return super().update_profile()
+    async def update_profile(
+        self,
+        user_id: int,
+        user_data: dict,
+        session: AsyncSession,
+        validate: UserValidateService = UserValidateService(),
+    ):
+
+        user_data = clear_none(user_data)
+        validate.validate_user(user_data)
+
+        updated_user = await self.repo.update(user_id, user_data, session)
+
+        return {"profile": ProfileUserDto(updated_user.nickname, updated_user.email)}

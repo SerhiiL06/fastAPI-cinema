@@ -1,10 +1,12 @@
+from dataclasses import asdict
+
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 
 from src.common.factories import current_user, session_factory
 from src.common.permissions import check_role
 from src.presentation.dependency import Container
-from src.presentation.mappings.user import RegisterUserDto
+from src.presentation.mappings import user as user_mapping
 from src.service.impl.comment_service_impl import CommentServiceImpl
 from src.service.impl.user_service_impl import UserServiceImpl
 
@@ -14,7 +16,7 @@ users_router = APIRouter(tags=["users"])
 @users_router.post("/register")
 @inject
 async def register(
-    data: RegisterUserDto,
+    data: user_mapping.RegisterUserDto,
     session: session_factory,
     service: UserServiceImpl = Depends(Provide[Container.user_service]),
 ):
@@ -40,6 +42,17 @@ async def my_profile(
     return await service.profile_page(user.get("user_id"), session)
 
 
+@users_router.patch("/profile")
+@inject
+async def update_profile(
+    user: current_user,
+    data: user_mapping.UpdateProfileDto,
+    session: session_factory,
+    service: UserServiceImpl = Depends(Provide[Container.user_service]),
+):
+    return await service.update_profile(user.get("user_id"), asdict(data), session)
+
+
 @users_router.get("/{user_id}/profile")
 @check_role(["regular"])
 @inject
@@ -50,6 +63,18 @@ async def user_info(
     service: UserServiceImpl = Depends(Provide[Container.user_service]),
 ):
     return await service.fetch_user_info(user_id, session)
+
+
+@users_router.delete("/users/delete")
+@check_role(["regular"])
+@inject
+async def update_profile(
+    user: current_user,
+    user_id: int,
+    session: session_factory,
+    service: UserServiceImpl = Depends(Provide[Container.user_service]),
+):
+    return await service.delete_user(user_id, session)
 
 
 @users_router.get("/users/comments")

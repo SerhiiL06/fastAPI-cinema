@@ -18,6 +18,12 @@ class ProfileUserDto:
 
 
 @dataclass
+class UpdateProfileDto:
+    nickname: str = None
+    email: str = None
+
+
+@dataclass
 class DetailProfileDto(ProfileUserDto):
     verificate: bool
     is_active: bool

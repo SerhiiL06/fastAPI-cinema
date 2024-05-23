@@ -4,6 +4,7 @@ from dataclasses import asdict
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.common.logic import clear_none
 from src.presentation.mappings.cinema import CinemaDTO, CityDTO
 from src.repository.cinema_repository import CinemaRepository
 from src.repository.converters.cinema import (cinema_dto_to_entity,
@@ -44,12 +45,9 @@ class CinemaService:
         self, entity_id: int, data: CinemaDTO, session: AsyncSession
     ):
 
-        cleared_data = self.clear_none(asdict(data), session)
+        cleared_data = clear_none(data)
 
-        if not cleared_data:
-            raise HTTPException(400, "No data to update")
-
-        q = await self.repo.update(entity_id, cleared_data)
+        q = await self.repo.update(entity_id, cleared_data, session)
 
         return q
 
@@ -67,12 +65,3 @@ class CinemaService:
             raise HTTPException(400, exception_list)
 
         return dto
-
-    @classmethod
-    def clear_none(cls, data: dict):
-        after = {}
-        for k, v in data.items():
-            if v:
-                after.update({k: v})
-
-        return after

@@ -2,25 +2,29 @@ import re
 
 from fastapi import HTTPException
 
-from src.presentation.mappings.user import RegisterUserDto
 from src.service.password_service import PasswordService
 
 
 class UserValidateService:
 
-    def validate_user(
-        self, data: RegisterUserDto, pw_service: PasswordService
-    ) -> RegisterUserDto:
+    def validate_user(self, data: dict, pw_service: PasswordService = None):
 
         errors = {}
 
-        if not self.is_correct_email(data.email):
+        email = data.get("email")
+        nickname = data.get("nickname")
+        password1 = data.get("password1")
+        password2 = data.get("password2")
+
+        if email and not self.is_correct_email(email):
             errors["email"] = "error email pattern or length"
 
-        if not self.is_correct_nickname(data.nickname):
+        if nickname and not self.is_correct_nickname(nickname):
             errors["nickname"] = "nickname must have only letters and numbers"
 
-        password_errors = pw_service.validate_password(data.password1, data.password2)
+        password_errors = None
+        if password1:
+            password_errors = pw_service.validate_password(password1, password2)
 
         if password_errors:
             errors["password_format"] = password_errors

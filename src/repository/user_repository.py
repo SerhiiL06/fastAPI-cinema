@@ -34,7 +34,10 @@ class UserRepository(AbstractRepository):
         return await self._find_by_field(nickname, session)
 
     async def _find_by_field(
-        self, search_field: Union[str, int], session: AsyncSession
+        self,
+        search_field: Union[str, int],
+        session: AsyncSession,
+        check_exists: bool = False,
     ):
         q = select(User)
 
@@ -47,7 +50,7 @@ class UserRepository(AbstractRepository):
 
         to_return = result.scalars().one_or_none()
 
-        if to_return is None:
+        if to_return is None and not check_exists:
             raise HTTPException(404, "user doesnt exists")
 
         return to_return
@@ -72,6 +75,11 @@ class UserRepository(AbstractRepository):
 
         user_instance: User = await self.find_by_id(entity_id, session)
 
+        if await self._find_by_field(data.get("email"), session, check_exists=True):
+            raise HTTPException(400, "email already exists")
+        if await self._find_by_field(data.get("nickname"), session, check_exists=True):
+            raise HTTPException(400, "nickname already exists")
+
         user_instance.email = data.get("email", user_instance.email)
         user_instance.nickname = data.get("nickname", user_instance.nickname)
         user_instance.is_active = data.get("is_active", user_instance.is_active)
@@ -83,7 +91,7 @@ class UserRepository(AbstractRepository):
         return user_instance
 
     async def delete(self, entity_id: int, session: AsyncSession) -> None:
-        instance = await self.find_by_id(entity_id)
+        instance = await self._find_by_field(entity_id, session)
 
         await session.delete(instance)
         await session.commit()
