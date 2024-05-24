@@ -23,9 +23,9 @@ def application():
     app.include_router(users_router)
 
     container = Container()
-    container.config.db_name.from_env("DB_NAME")
-    container.config.db_username.from_env("DB_USERNAME")
-    container.config.db_password.from_env("DB_PASSWORD")
+    container.config.db_name.from_env("POSTGRES_DB")
+    container.config.db_username.from_env("POSTGRES_USERNAME")
+    container.config.db_password.from_env("POSTGRES_PASSWORD")
     container.config.db_host.from_env("DB_HOST")
     container.config.db_port.from_env("DB_PORT")
     container.wire(packages=["src.presentation"])

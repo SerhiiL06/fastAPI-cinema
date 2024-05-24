@@ -1,9 +1,8 @@
 import os
 from collections.abc import AsyncGenerator
-from typing import Annotated
 
 from dotenv import load_dotenv
-from fastapi import Depends
+from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
                                     create_async_engine)
 
@@ -33,7 +32,15 @@ class DatabaseCORE:
 
     @property
     def _db_url(self):
-        return f"postgresql+asyncpg://{self._DB_USERNAME}:{self._DB_PASSWORD}@{self._DB_HOST}:{self._DB_PORT}/{self._DB_NAME}"
+        url = URL.create(
+            "postgresql+asyncpg",
+            self._DB_USERNAME,
+            self._DB_PASSWORD,
+            self._DB_HOST,
+            self._DB_PORT,
+            self._DB_NAME,
+        )
+        return url
 
     @property
     def _engine(self):
@@ -51,9 +58,9 @@ class DatabaseCORE:
 
 
 core = DatabaseCORE(
-    os.getenv("DB_NAME"),
-    os.getenv("DB_USERNAME"),
-    os.getenv("DB_PASSWORD"),
+    os.getenv("POSTGRES_DB"),
+    os.getenv("POSTGRES_USERNAME"),
+    os.getenv("POSTGRES_PASSWORD"),
     os.getenv("DB_HOST"),
     os.getenv("DB_PORT"),
 )

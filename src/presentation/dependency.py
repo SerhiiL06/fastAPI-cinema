@@ -24,9 +24,9 @@ class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
     db = providers.Singleton(
         DatabaseCORE,
-        db_name=config.db_name,
-        username=config.db_username,
-        password=config.db_password,
+        db_name=config.postgres_db,
+        username=config.postgres_username,
+        password=config.postgres_password,
         host=config.db_host,
         port=config.db_port,
     )
