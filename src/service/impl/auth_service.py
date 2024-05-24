@@ -26,6 +26,9 @@ class AuthService:
         if self.pswd.verify(password, instance.hashed_password) is False:
             raise HTTPException(401, "wrong password or email")
 
+        if not instance.is_active:
+            raise HTTPException(401, "Your account is not active")
+
         payload = {
             "user_id": instance.id,
             "email": instance.email,

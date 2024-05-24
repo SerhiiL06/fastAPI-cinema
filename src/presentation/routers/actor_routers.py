@@ -1,5 +1,6 @@
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
+from redis import Redis
 
 from src.common.factories import current_user, session_factory
 from src.presentation.dependency import Container
@@ -7,6 +8,14 @@ from src.presentation.mappings.actor import CreateActorDto
 from src.service.actor_service import ActorService
 
 actor_routers = APIRouter(tags=["actors"])
+
+
+@actor_routers.get("/else")
+@inject
+async def something(
+    service: Redis = Depends(Provide[Container.redis.provided.connection]),
+):
+    await service.set("test", 2)
 
 
 @actor_routers.get("/actors")

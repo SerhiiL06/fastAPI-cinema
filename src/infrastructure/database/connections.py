@@ -34,11 +34,11 @@ class DatabaseCORE:
     def _db_url(self):
         url = URL.create(
             "postgresql+asyncpg",
-            self._DB_USERNAME,
-            self._DB_PASSWORD,
-            self._DB_HOST,
-            self._DB_PORT,
-            self._DB_NAME,
+            self.database_env.get("DB_NAME"),
+            self.database_env.get("DB_USERNAME"),
+            self.database_env.get("DB_PASSWORD"),
+            self.database_env.get("DB_HOST"),
+            self.database_env.get("DB_PORT"),
         )
         return url
 

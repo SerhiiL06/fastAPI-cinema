@@ -1,6 +1,7 @@
 from dependency_injector import containers, providers
 
 from src.infrastructure.database.connections import DatabaseCORE
+from src.infrastructure.database.redis import RedisCore
 from src.repository.actor_repository import ActorRepository
 from src.repository.cinema_repository import CinemaRepository
 from src.repository.comment_repository import CommentRepository
@@ -22,6 +23,7 @@ from src.service.password_service import PasswordService
 class Container(containers.DeclarativeContainer):
 
     config = providers.Configuration()
+
     db = providers.Singleton(
         DatabaseCORE,
         db_name=config.postgres_db,
@@ -30,6 +32,8 @@ class Container(containers.DeclarativeContainer):
         host=config.db_host,
         port=config.db_port,
     )
+
+    redis = providers.Singleton(RedisCore, url="redis://redis")
 
     image_service = providers.Factory(ImageService)
     cinema_repo = providers.Factory(CinemaRepository)
