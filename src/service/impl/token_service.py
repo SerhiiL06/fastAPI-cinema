@@ -1,3 +1,4 @@
+import datetime as dt
 from datetime import datetime, timedelta
 
 import jwt
@@ -9,13 +10,14 @@ class TokenService:
 
     def create_token(self, payload: dict) -> str:
 
-        payload["exp"] = datetime.now() - timedelta(minutes=30)
+        payload["exp"] = datetime.now() + timedelta(minutes=30)
         token = jwt.encode(payload, settings_factory.key)
         return {"access_token": token, "token_type": "bearer"}
 
     def get_token(self, token: str) -> dict:
-
-        user_data = jwt.decode(token, settings_factory.key, algorithms=["HS256"])
+        user_data = jwt.decode(
+            token, settings_factory.key, algorithms=["HS256"], leeway=3600
+        )
         self._verify_token(user_data)
 
         return user_data

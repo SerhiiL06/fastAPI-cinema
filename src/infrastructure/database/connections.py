@@ -33,12 +33,12 @@ class DatabaseCORE:
     @property
     def _db_url(self):
         url = URL.create(
-            "postgresql+asyncpg",
-            self.database_env.get("DB_NAME"),
-            self.database_env.get("DB_USERNAME"),
-            self.database_env.get("DB_PASSWORD"),
-            self.database_env.get("DB_HOST"),
-            self.database_env.get("DB_PORT"),
+            drivername="postgresql+asyncpg",
+            username=self.database_env.get("DB_USERNAME"),
+            password=self.database_env.get("DB_PASSWORD"),
+            host=self.database_env.get("DB_HOST"),
+            port=self.database_env.get("DB_PORT"),
+            database=self.database_env.get("DB_NAME"),
         )
         return url
 

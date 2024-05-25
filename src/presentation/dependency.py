@@ -15,6 +15,7 @@ from src.service.image_service import ImageService
 from src.service.impl.auth_service import AuthService
 from src.service.impl.comment_service_impl import CommentServiceImpl
 from src.service.impl.movie_service_impl import MovieServiceImpl
+from src.service.impl.redis_service_impl import RedisServiceImpl
 from src.service.impl.token_service import TokenService
 from src.service.impl.user_service_impl import UserServiceImpl
 from src.service.password_service import PasswordService
@@ -34,7 +35,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     redis = providers.Singleton(RedisCore, url="redis://redis")
-
+    redis_service = providers.Factory(RedisServiceImpl, redis.provided.connection)
     image_service = providers.Factory(ImageService)
     cinema_repo = providers.Factory(CinemaRepository)
     cinema_service = providers.Factory(CinemaService, repo=cinema_repo)

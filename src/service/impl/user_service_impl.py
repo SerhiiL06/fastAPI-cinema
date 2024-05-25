@@ -1,4 +1,5 @@
 from dataclasses import asdict
+from random import randint
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.common.logic import clear_none
 from src.presentation.mappings import user as mapping
 from src.repository.user_repository import UserRepository
+from src.service.impl.redis_service_impl import RedisServiceImpl
 from src.service.password_service import PasswordService
 from src.service.user_service import UserService
 from src.service.user_validate_service import UserValidateService
@@ -101,3 +103,14 @@ class UserServiceImpl(UserService):
         await self.repo.update_password(user_id, hashed_password, session)
 
         return {"update": "ok"}
+
+    async def recovery_password(
+        self, email, redis: RedisServiceImpl, session: AsyncSession
+    ):
+        await self.repo.find_by_email(email, session)
+
+        code = randint(1000, 9999)
+
+        await redis.set_recovery_code(email, code)
+
+        return {"ok": f"code {code} was send"}

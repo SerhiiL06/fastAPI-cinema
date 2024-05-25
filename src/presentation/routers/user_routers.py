@@ -8,6 +8,7 @@ from src.common.permissions import check_role
 from src.presentation.dependency import Container
 from src.presentation.mappings import user as user_mapping
 from src.service.impl.comment_service_impl import CommentServiceImpl
+from src.service.impl.redis_service_impl import RedisServiceImpl
 from src.service.impl.user_service_impl import UserServiceImpl
 
 users_router = APIRouter(tags=["users"])
@@ -62,6 +63,17 @@ async def change_password(
     service: UserServiceImpl = Depends(Provide[Container.user_service]),
 ):
     return await service.set_password(user.get("user_id"), data, session)
+
+
+@users_router.post("/users/forgot-password")
+@inject
+async def forgot_password(
+    email: str,
+    session: session_factory,
+    service: UserServiceImpl = Depends(Provide[Container.user_service]),
+    redis_service: RedisServiceImpl = Depends(Provide[Container.redis_service]),
+):
+    return await service.recovery_password(email, redis_service, session)
 
 
 @users_router.get("/{user_id}/profile")
