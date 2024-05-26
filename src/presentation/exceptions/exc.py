@@ -1,8 +1,6 @@
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 
-from src.infrastructure.database.models.base import Base
-
 
 class PermissionDanied(Exception):
     pass

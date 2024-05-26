@@ -1,10 +1,11 @@
 from dataclasses import asdict
 from random import randint
 
+from adaptix import Retort
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.common.logic import clear_none
+from src.common.logic import clear_none, data_mapper
 from src.presentation.mappings import user as mapping
 from src.repository.user_repository import UserRepository
 from src.service.impl.redis_service_impl import RedisServiceImpl
@@ -16,6 +17,7 @@ from src.service.user_validate_service import UserValidateService
 class UserServiceImpl(UserService):
     def __init__(self, repo: UserRepository) -> None:
         self.repo = repo
+        self.retort = Retort()
 
     async def register(
         self,
@@ -40,14 +42,8 @@ class UserServiceImpl(UserService):
 
     async def fetch_user_info(self, user_id: int, session: AsyncSession):
         user = await self.repo.find_by_id(user_id, session)
-        user_dto = mapping.DetailProfileDto(
-            user.nickname,
-            user.email,
-            user.verificate,
-            user.is_active,
-            user.joined_at,
-            user.role,
-        )
+        user_dto = data_mapper.dump(user, mapping.DetailProfileDto)
+
         return {"user": user_dto}
 
     async def profile_page(self, user_id: int, session: AsyncSession):

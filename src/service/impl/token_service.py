@@ -2,6 +2,7 @@ import datetime as dt
 from datetime import datetime, timedelta
 
 import jwt
+from fastapi import HTTPException
 
 from src.infrastructure.settings import settings_factory
 
@@ -15,9 +16,13 @@ class TokenService:
         return {"access_token": token, "token_type": "bearer"}
 
     def get_token(self, token: str) -> dict:
-        user_data = jwt.decode(
-            token, settings_factory.key, algorithms=["HS256"], leeway=3600
-        )
+        try:
+            user_data = jwt.decode(
+                token, settings_factory.key, algorithms=["HS256"], leeway=3600
+            )
+        except jwt.exceptions.ExpiredSignatureError as e:
+            raise HTTPException(401, "reload session")
+
         self._verify_token(user_data)
 
         return user_data

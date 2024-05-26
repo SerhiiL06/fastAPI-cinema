@@ -1,3 +1,6 @@
+from datetime import datetime
+
+from adaptix import Retort, dumper
 from fastapi import HTTPException
 
 
@@ -12,3 +15,6 @@ def clear_none(data: dict) -> dict:
         raise HTTPException(400, "No data to update")
 
     return after
+
+
+data_mapper = Retort(recipe=[dumper(datetime, lambda x: x.date())])
