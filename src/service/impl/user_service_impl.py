@@ -5,8 +5,9 @@ from adaptix import Retort
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.common.logic import clear_none, data_mapper
+from src.common.logic import clear_none
 from src.presentation.mappings import user as mapping
+from src.presentation.mappings.main import data_mapper
 from src.repository.user_repository import UserRepository
 from src.service.impl.redis_service_impl import RedisServiceImpl
 from src.service.password_service import PasswordService

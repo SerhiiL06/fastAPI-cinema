@@ -9,13 +9,19 @@ from sqlalchemy.orm import joinedload
 from src.infrastructure.database.models.cinema import Cinema, City
 
 from .abstract import AbstractRepository
+from .exceptions.exc import DoesntExists
 
 
 class CityRepository:
 
     async def get_city_by_id(self, city_id, session: AsyncSession) -> Optional[City]:
 
-        return await session.get(City, city_id)
+        city = await session.get(City, city_id)
+
+        if city is None:
+            raise DoesntExists(City, city_id)
+
+        return city
 
     async def create_city(self, data: dict, session: AsyncSession) -> Optional[int]:
 
@@ -44,10 +50,7 @@ class CinemaRepository(CityRepository, AbstractRepository):
         return result.scalars().all()
 
     async def create(self, cinema: Cinema, session: AsyncSession) -> int:
-        city = await self.get_city_by_id(cinema.city_id, self.session)
-
-        if city is None:
-            raise HTTPException(404, "city with this id doesn't exists")
+        city = await self.get_city_by_id(cinema.city_id, session)
 
         cinema.city = city
         session.add(cinema)

@@ -5,10 +5,10 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.common.logic import clear_none
+from src.infrastructure.database.models.cinema import Cinema
 from src.presentation.mappings.cinema import CinemaDTO, CityDTO
+from src.presentation.mappings.main import data_mapper
 from src.repository.cinema_repository import CinemaRepository
-from src.repository.converters.cinema import (cinema_dto_to_entity,
-                                              cinema_entity_to_dto)
 
 
 class CinemaService:
@@ -23,15 +23,17 @@ class CinemaService:
 
     async def add_cinema(self, data: CinemaDTO, session: AsyncSession) -> dict:
 
-        validate_data = self.cinema_validate(data)
-        cinema_id = await self.repo.create(cinema_dto_to_entity(validate_data), session)
+        validate_data = asdict(self.cinema_validate(data))
+        cinema_id = await self.repo.create(
+            data_mapper.load(validate_data, Cinema), session
+        )
 
         return {"id": cinema_id}
 
     async def get_cinema_list(self, session: AsyncSession):
-        entities = await self.repo.find_all(session)
-
-        return {"cinemas_list": cinema_entity_to_dto(entities)}
+        cinema_list = await self.repo.find_all(session)
+        cinema_list = data_mapper.dump(cinema_list, list[CinemaDTO])
+        return {"cinemas_list": cinema_list}
 
     async def get_cinema(self, entity_id: int, session: AsyncSession):
         cinema = await self.repo.find_by_id(entity_id, session)
@@ -52,7 +54,7 @@ class CinemaService:
         return q
 
     @classmethod
-    def cinema_validate(dto: CinemaDTO):
+    def cinema_validate(cls, dto: CinemaDTO):
         exception_list = {"errors": {}}
 
         if not re.findall(r"^\w+@example|gmail|mail.com", dto.email):

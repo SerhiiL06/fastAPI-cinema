@@ -39,7 +39,7 @@ async def create_city(
     return await service.add_city(data, session)
 
 
-@cinema_router.post("/cinemas", status_code=204)
+@cinema_router.post("/cinemas", status_code=201)
 @inject
 async def create_cinema(
     session: session_factory,
