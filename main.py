@@ -1,20 +1,23 @@
-from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
 
 from src.presentation.dependency import Container
-from src.presentation.exceptions.exc import PermissionDanied
+from src.presentation.exceptions.exc import PermissionDanied, permission_danied
 from src.presentation.routers.actor_routers import actor_routers
 from src.presentation.routers.auth_routers import auth_routers
 from src.presentation.routers.cinema_routers import cinema_router
 from src.presentation.routers.genre_routers import genre_router
 from src.presentation.routers.movie_routers import movies_router
 from src.presentation.routers.user_routers import users_router
-from src.repository.exceptions.exc import DoesntExists
+from src.repository.exceptions.exc import DoesntExists, doesnt_exists
+from src.service.middlewares.rate_limits import rate_limit_lifespan
 
 
 def application():
 
-    app = FastAPI()
+    app = FastAPI(lifespan=rate_limit_lifespan)
+
     app.include_router(actor_routers)
     app.include_router(auth_routers)
     app.include_router(cinema_router)
@@ -22,35 +25,18 @@ def application():
     app.include_router(movies_router)
     app.include_router(users_router)
 
+    app.add_exception_handler(DoesntExists, doesnt_exists)
+    app.add_exception_handler(PermissionDanied, permission_danied)
+
     container = Container()
     container.config.db_name.from_env("POSTGRES_DB")
     container.config.db_username.from_env("POSTGRES_USERNAME")
     container.config.db_password.from_env("POSTGRES_PASSWORD")
     container.config.db_host.from_env("DB_HOST")
     container.config.db_port.from_env("DB_PORT")
-    container.wire(packages=["src.presentation"])
+    container.wire(packages=["src.presentation", "src.service.middlewares"])
 
     return app
 
 
 app = application()
-
-
-@app.exception_handler(DoesntExists)
-def doesnt_exists(request: Request, exc: DoesntExists):
-    error_text = f"{exc.model} with value {exc.ident} doesnt exists"
-    resp = JSONResponse(
-        content={"code": "400", "msg": error_text},
-        status_code=status.HTTP_404_NOT_FOUND,
-    )
-    return resp
-
-
-@app.exception_handler(PermissionDanied)
-def doesnt_exists(request: Request, exc: PermissionDanied):
-    error_text = "You don't have permission for this action"
-    resp = JSONResponse(
-        content={"code": "403", "msg": error_text},
-        status_code=status.HTTP_403_FORBIDDEN,
-    )
-    return resp

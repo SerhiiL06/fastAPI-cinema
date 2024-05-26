@@ -1,7 +1,8 @@
 from dataclasses import asdict
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+from fastapi_limiter.depends import RateLimiter
 
 from src.common.factories import current_user, session_factory
 from src.common.permissions import check_role
@@ -65,9 +66,12 @@ async def change_password(
     return await service.set_password(user.get("user_id"), data, session)
 
 
-@users_router.post("/users/forgot-password")
+@users_router.post(
+    "/users/forgot-password", dependencies=[Depends(RateLimiter(1, minutes=1))]
+)
 @inject
 async def forgot_password(
+    request: Request,
     email: str,
     session: session_factory,
     service: UserServiceImpl = Depends(Provide[Container.user_service]),
