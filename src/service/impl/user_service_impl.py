@@ -9,6 +9,7 @@ from src.common.logic import clear_none
 from src.presentation.mappings import user as mapping
 from src.presentation.mappings.main import data_mapper
 from src.repository.user_repository import UserRepository
+from src.service.impl.email_service_impl import EmailServiceimpl
 from src.service.impl.redis_service_impl import RedisServiceImpl
 from src.service.password_service import PasswordService
 from src.service.user_service import UserService
@@ -22,9 +23,10 @@ class UserServiceImpl(UserService):
     async def register(
         self,
         user_data: mapping.RegisterUserDto,
-        session: AsyncSession,
         password: PasswordService,
         validate: UserValidateService,
+        email: EmailServiceimpl,
+        session: AsyncSession,
     ) -> dict:
 
         user_dict = asdict(user_data)
@@ -34,6 +36,8 @@ class UserServiceImpl(UserService):
         user_dict.pop("password2")
 
         user_id = await self.repo.create(user_dict, session)
+
+        await email.send_verificated_message(user_dict.get("email"))
 
         return JSONResponse({"user_id": user_id}, status.HTTP_201_CREATED)
 
@@ -103,7 +107,11 @@ class UserServiceImpl(UserService):
         return {"update": "ok"}
 
     async def recovery_password(
-        self, email, redis: RedisServiceImpl, session: AsyncSession
+        self,
+        email: str,
+        redis: RedisServiceImpl,
+        mail: EmailServiceimpl,
+        session: AsyncSession,
     ):
         await self.repo.find_by_email(email, session)
 
@@ -111,8 +119,7 @@ class UserServiceImpl(UserService):
 
         await redis.set_recovery_code(email, code)
 
-        # --- send email logic ---
-        ##########################
+        await mail.send_recovery_code(email, code)
 
         return {"ok": f"code {code} was send"}
 

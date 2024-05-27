@@ -9,6 +9,7 @@ from src.common.permissions import check_role
 from src.presentation.dependency import Container
 from src.presentation.mappings import user as user_mapping
 from src.service.impl.comment_service_impl import CommentServiceImpl
+from src.service.impl.email_service_impl import EmailServiceimpl
 from src.service.impl.redis_service_impl import RedisServiceImpl
 from src.service.impl.user_service_impl import UserServiceImpl
 from src.service.password_service import PasswordService
@@ -25,8 +26,11 @@ async def register(
     service: UserServiceImpl = Depends(Provide[Container.user_service]),
     password_service: PasswordService = Depends(Provide[Container.password_service]),
     validate_service: UserValidateService = Depends(UserValidateService),
+    email: EmailServiceimpl = Depends(Provide[Container.email_service]),
 ):
-    return await service.register(data, session, password_service, validate_service)
+    return await service.register(
+        data, password_service, validate_service, email, session
+    )
 
 
 @users_router.get("/users")
@@ -80,8 +84,9 @@ async def forgot_password(
     session: session_factory,
     service: UserServiceImpl = Depends(Provide[Container.user_service]),
     redis_service: RedisServiceImpl = Depends(Provide[Container.redis_service]),
+    email_service: EmailServiceimpl = Depends(Provide[Container.email_service]),
 ):
-    return await service.recovery_password(email, redis_service, session)
+    return await service.recovery_password(email, redis_service, email_service, session)
 
 
 @users_router.post("/users/recovery/{email}")
