@@ -36,3 +36,9 @@ class SetPasswordDto:
     old_password: str
     new_password1: str
     new_password2: str
+
+
+@dataclass
+class NewPassowrdDto:
+    password1: str
+    password2: str

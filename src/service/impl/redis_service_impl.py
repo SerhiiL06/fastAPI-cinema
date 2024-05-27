@@ -7,21 +7,24 @@ from src.service.redis_service import RedisService
 class RedisServiceImpl(RedisService):
 
     def __init__(self, core: Redis) -> None:
-        self.instance = core
+        self._instance = core
 
     async def set_recovery_code(self, email: str, code: int) -> None:
         key = f"recovery:{email}"
 
-        check = await self.instance.get(key)
+        check = await self._instance.get(key)
 
         if check:
-            to_exp = await self.instance.ttl(key)
+            to_exp = await self._instance.ttl(key)
             raise HTTPException(400, f"u can resend code after {to_exp} seconds")
 
-        await self.instance.set(key, code, 600)
+        await self._instance.set(key, code, 600)
 
-    async def verify_code(self, email: str, enter_code: int) -> bool:
+    async def verify_code(self, email: str, enter_code: str) -> bool:
         key = f"recovery:{email}"
-        code = await self.instance.get(key)
+        code = await self._instance.get(key)
 
-        return code == enter_code
+        return code.decode("ascii") == enter_code
+
+    async def delete_key(self, key: str) -> None:
+        await self._instance.delete(key)

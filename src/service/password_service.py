@@ -1,5 +1,5 @@
 import string
-
+from random import randint
 from passlib.context import CryptContext
 
 
@@ -40,3 +40,7 @@ class PasswordService:
 
     def verify(self, secret: str, hashed: str) -> bool:
         return self.__bcrypt.verify(secret, hashed)
+
+    @staticmethod
+    def generate_recovery_code() -> int:
+        return randint(1000, 9999)

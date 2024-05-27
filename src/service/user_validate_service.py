@@ -17,21 +17,21 @@ class UserValidateService:
         password1 = data.get("password1")
         password2 = data.get("password2")
         validate_email(email)
-        # if email and not self.is_correct_email(email):
-        #     errors["email"] = "error email pattern or length"
+        if email and not self.is_correct_email(email):
+            errors["email"] = "error email pattern or length"
 
-        # if nickname and not self.is_correct_nickname(nickname):
-        #     errors["nickname"] = "nickname must have only letters and numbers"
+        if nickname and not self.is_correct_nickname(nickname):
+            errors["nickname"] = "nickname must have only letters and numbers"
 
-        # password_errors = None
-        # if password1:
-        #     password_errors = pw_service.validate_password(password1, password2)
+        password_errors = None
+        if password1:
+            password_errors = pw_service.validate_password(password1, password2)
 
-        # if password_errors:
-        #     errors["password_format"] = password_errors
+        if password_errors:
+            errors["password_format"] = password_errors
 
-        # if errors:
-        #     raise HTTPException(400, errors)
+        if errors:
+            raise HTTPException(400, errors)
 
     @staticmethod
     def is_correct_email(email: str) -> bool:

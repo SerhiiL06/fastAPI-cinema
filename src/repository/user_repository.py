@@ -1,7 +1,7 @@
 from typing import Optional, Union
 
 from fastapi import HTTPException
-from sqlalchemy import Date, cast, delete, insert, or_, select, update
+from sqlalchemy import Date, cast, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,7 +20,7 @@ class UserRepository(AbstractRepository):
 
             return user_id.scalar()
         except IntegrityError as e:
-            raise HTTPException(400, f"user with this email already exists")
+            raise HTTPException(400, "user with this email already exists")
 
     async def find_by_id(self, entity_id: int, session: AsyncSession) -> Optional[User]:
         return await self._find_by_field(entity_id, session)

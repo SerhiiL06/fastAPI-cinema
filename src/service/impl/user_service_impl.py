@@ -1,8 +1,8 @@
 from dataclasses import asdict
 from random import randint
 
-from adaptix import Retort
-from fastapi import HTTPException
+from fastapi import HTTPException, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.common.logic import clear_none
@@ -18,23 +18,24 @@ from src.service.user_validate_service import UserValidateService
 class UserServiceImpl(UserService):
     def __init__(self, repo: UserRepository) -> None:
         self.repo = repo
-        self.retort = Retort()
 
     async def register(
         self,
         user_data: mapping.RegisterUserDto,
         session: AsyncSession,
-        password: PasswordService = PasswordService(),
-        validate: UserValidateService = UserValidateService(),
-    ):
+        password: PasswordService,
+        validate: UserValidateService,
+    ) -> dict:
 
         user_dict = asdict(user_data)
         validate.validate_user(user_dict, password)
+
         user_dict["hashed_password"] = password.hashing(user_dict.pop("password1"))
         user_dict.pop("password2")
+
         user_id = await self.repo.create(user_dict, session)
 
-        return {"user_id": user_id}
+        return JSONResponse({"user_id": user_id}, status.HTTP_201_CREATED)
 
     async def fetch_users(self, session: AsyncSession):
         users = await self.repo.find_all(session)
@@ -110,4 +111,36 @@ class UserServiceImpl(UserService):
 
         await redis.set_recovery_code(email, code)
 
+        # --- send email logic ---
+        ##########################
+
         return {"ok": f"code {code} was send"}
+
+    async def change_password(
+        self,
+        email: str,
+        code: int,
+        pw_data: mapping.NewPassowrdDto,
+        password_service: PasswordService,
+        redis: RedisServiceImpl,
+        session: AsyncSession,
+    ):
+        if await redis.verify_code(email, str(code)) is False:
+            raise HTTPException(400, "wrong code")
+
+        user_instance = await self.repo.find_by_email(email, session)
+
+        errors = password_service.validate_password(
+            pw_data.password1, pw_data.password2
+        )
+
+        if errors:
+            raise HTTPException(400, errors)
+
+        hash_password = password_service.hashing(pw_data.password1)
+
+        await self.repo.update_password(user_instance.id, hash_password, session)
+
+        key = f"recovery:{email}"
+        await redis.delete_key(key)
+        return JSONResponse({"update": "success"}, status.HTTP_200_OK)

@@ -9,6 +9,8 @@ from src.common.permissions import check_role
 from src.presentation.dependency import Container
 from src.presentation.mappings import user as user_mapping
 from src.service.impl.comment_service_impl import CommentServiceImpl
+from src.service.password_service import PasswordService
+from src.service.user_validate_service import UserValidateService
 from src.service.impl.redis_service_impl import RedisServiceImpl
 from src.service.impl.user_service_impl import UserServiceImpl
 
@@ -21,8 +23,10 @@ async def register(
     data: user_mapping.RegisterUserDto,
     session: session_factory,
     service: UserServiceImpl = Depends(Provide[Container.user_service]),
+    password_service: PasswordService = Depends(Provide[Container.password_service]),
+    validate_service: UserValidateService = Depends(UserValidateService),
 ):
-    return await service.register(data, session)
+    return await service.register(data, session, password_service, validate_service)
 
 
 @users_router.get("/users")
@@ -78,6 +82,22 @@ async def forgot_password(
     redis_service: RedisServiceImpl = Depends(Provide[Container.redis_service]),
 ):
     return await service.recovery_password(email, redis_service, session)
+
+
+@users_router.post("/users/recovery/{email}")
+@inject
+async def restore_password(
+    email: str,
+    code: int,
+    password_data: user_mapping.NewPassowrdDto,
+    session: session_factory,
+    service: UserServiceImpl = Depends(Provide[Container.user_service]),
+    password_service: PasswordService = Depends(Provide[Container.password_service]),
+    redis_service: RedisServiceImpl = Depends(Provide[Container.redis_service]),
+):
+    return await service.change_password(
+        email, code, password_data, password_service, redis_service, session
+    )
 
 
 @users_router.get("/{user_id}/profile")
