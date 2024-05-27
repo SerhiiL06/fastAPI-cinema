@@ -40,7 +40,7 @@ class UserServiceImpl(UserService):
     async def fetch_users(self, session: AsyncSession):
         users = await self.repo.find_all(session)
 
-        return users
+        return {"user_list": data_mapper.dump(users, list[mapping.DetailProfileDto])}
 
     async def fetch_user_info(self, user_id: int, session: AsyncSession):
         user = await self.repo.find_by_id(user_id, session)

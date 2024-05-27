@@ -34,6 +34,7 @@ def application():
     container.config.db_password.from_env("POSTGRES_PASSWORD")
     container.config.db_host.from_env("DB_HOST")
     container.config.db_port.from_env("DB_PORT")
+    container.config.redis_url.from_env("REDIS_URL")
     container.wire(packages=["src.presentation", "src.service.middlewares"])
 
     return app

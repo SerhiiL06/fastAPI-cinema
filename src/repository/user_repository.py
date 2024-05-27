@@ -57,19 +57,9 @@ class UserRepository(AbstractRepository):
 
     async def find_all(self, session: AsyncSession) -> list[User]:
 
-        q = select(
-            User.id,
-            User.email,
-            User.nickname,
-            cast(User.joined_at, Date),
-            User.is_active,
-            User.verificate,
-            User.role,
-        )
+        users = await session.execute(select(User))
 
-        users = await session.execute(q)
-
-        return users.mappings().all()
+        return users.scalars().all()
 
     async def update(self, entity_id: int, data: dict, session: AsyncSession) -> User:
 

@@ -9,10 +9,10 @@ from src.common.permissions import check_role
 from src.presentation.dependency import Container
 from src.presentation.mappings import user as user_mapping
 from src.service.impl.comment_service_impl import CommentServiceImpl
-from src.service.password_service import PasswordService
-from src.service.user_validate_service import UserValidateService
 from src.service.impl.redis_service_impl import RedisServiceImpl
 from src.service.impl.user_service_impl import UserServiceImpl
+from src.service.password_service import PasswordService
+from src.service.user_validate_service import UserValidateService
 
 users_router = APIRouter(tags=["users"])
 

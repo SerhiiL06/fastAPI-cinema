@@ -1,7 +1,9 @@
 from dependency_injector import containers, providers
+from fastapi_mail import FastMail
 
 from src.infrastructure.database.connections import DatabaseCORE
 from src.infrastructure.database.redis import RedisCore
+from src.infrastructure.settings import settings_factory
 from src.repository.actor_repository import ActorRepository
 from src.repository.cinema_repository import CinemaRepository
 from src.repository.comment_repository import CommentRepository
@@ -14,6 +16,7 @@ from src.service.genre_service import GenreService
 from src.service.image_service import ImageService
 from src.service.impl.auth_service import AuthService
 from src.service.impl.comment_service_impl import CommentServiceImpl
+from src.service.impl.email_service_impl import EmailServiceimpl
 from src.service.impl.movie_service_impl import MovieServiceImpl
 from src.service.impl.redis_service_impl import RedisServiceImpl
 from src.service.impl.token_service import TokenService
@@ -27,15 +30,26 @@ class Container(containers.DeclarativeContainer):
 
     db = providers.Singleton(
         DatabaseCORE,
-        db_name=config.postgres_db,
-        username=config.postgres_username,
-        password=config.postgres_password,
-        host=config.db_host,
-        port=config.db_port,
+        db_name=config.postgres_db(),
+        username=config.postgres_username(),
+        password=config.postgres_password(),
+        host=config.db_host(),
+        port=config.db_port(),
     )
 
     redis = providers.Singleton(RedisCore, url="redis://redis")
     redis_service = providers.Factory(RedisServiceImpl, redis.provided.connection)
+
+    # email_config = providers.Singleton(
+    #     ConnectionConfig,
+    #     config.email_username,
+    #     config.email_password,
+    #     config.email_port,
+    #     config.email_server,
+    # )
+    email_core = providers.Singleton(FastMail, settings_factory.email_config)
+    email_service = providers.Factory(EmailServiceimpl, email_core)
+
     image_service = providers.Factory(ImageService)
     cinema_repo = providers.Factory(CinemaRepository)
     cinema_service = providers.Factory(CinemaService, repo=cinema_repo)
