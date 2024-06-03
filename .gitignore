@@ -4,7 +4,7 @@
 entities.txt
 test.db
 media/
-
+pg_data
 ### macOS ###
 # General
 .DS_Store

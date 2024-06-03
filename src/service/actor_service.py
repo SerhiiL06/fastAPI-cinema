@@ -3,8 +3,9 @@ from datetime import datetime
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from src.infrastructure.database.models.movie import Actor
 from src.presentation.mappings.actor import CreateActorDto
+from src.presentation.mappings.main import data_mapper
 from src.repository.actor_repository import ActorRepository
 
 
@@ -19,8 +20,9 @@ class ActorService:
         return await self.repo.find_by_id(actor_id, session)
 
     async def add_actor(self, data: CreateActorDto, session: AsyncSession):
-        validate_data = self._actor_validate(data)
-        actor_id = await self.repo.create(asdict(validate_data), session)
+        actor_data = data_mapper.load(asdict(data), Actor)
+
+        actor_id = await self.repo.create(actor_data, session)
 
         return {"id": actor_id}
 
