@@ -1,6 +1,7 @@
 import re
 
 from email_validator import validate_email
+import email_validator
 from fastapi import HTTPException
 
 from src.service.password_service import PasswordService
@@ -8,7 +9,7 @@ from src.service.password_service import PasswordService
 
 class UserValidateService:
 
-    def validate_user(self, data: dict, pw_service: PasswordService = None):
+    def validate_user(self, data: dict, pw_service: PasswordService = None) -> None:
 
         errors = {}
 
@@ -17,7 +18,10 @@ class UserValidateService:
         password1 = data.get("password1")
         password2 = data.get("password2")
 
-        validate_email(email)
+        try:
+            validate_email(email)
+        except email_validator.EmailSyntaxError as _:
+            raise HTTPException(400, "Check the email pattern")
 
         if nickname and not self.is_correct_nickname(nickname):
             errors["nickname"] = "nickname must have only letters and numbers"

@@ -1,13 +1,11 @@
-from typing import Optional
+from typing import Optional, Union
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from infrastructure.database.models.base import Base
+from sqlalchemy.exc import IntegrityError
 from src.infrastructure.database.models.tag import Tag
-
 from .abstract import AbstractRepository
-from .exceptions.exc import DoesntExists
+from .exceptions.exc import DoesntExists, AlreadyExists
 
 
 class TagRepository(AbstractRepository):
@@ -20,14 +18,26 @@ class TagRepository(AbstractRepository):
         return tags.scalars().all()
 
     async def find_by_id(self, entity_id: int, session: AsyncSession) -> Optional[Tag]:
-        q = select(Tag).where(Tag.id == entity_id)
+        return await self._find_by_field(entity_id, session)
+
+    async def find_by_title(self, entity_title: str, session: AsyncSession):
+        return await self._find_by_field(entity_title, session)
+
+    async def _find_by_field(self, field_info: Union[str, int], session: AsyncSession):
+        q = select(Tag)
+
+        if isinstance(field_info, str):
+            q = q.where(Tag.title == field_info)
+
+        else:
+            q = q.where(Tag.id == field_info)
 
         tag = await session.execute(q)
 
-        result = tag.one_or_none()
+        result = tag.scalars().one_or_none()
 
         if result is None:
-            raise DoesntExists(Tag, entity_id)
+            raise DoesntExists(Tag, field_info)
 
         return result
 
@@ -35,11 +45,13 @@ class TagRepository(AbstractRepository):
 
         session.add(data)
 
-        await session.commit()
+        try:
+            await session.commit()
+            await session.refresh(data)
+            return data
 
-        await session.refresh(data)
-
-        return data
+        except IntegrityError as _:
+            raise AlreadyExists(Tag, data.title)
 
     async def update(self, entity_id: int, title: str, session: AsyncSession) -> Tag:
 
@@ -47,15 +59,17 @@ class TagRepository(AbstractRepository):
 
         tag.title = title
 
-        await session.commit()
+        try:
+            await session.commit()
+            await session.refresh(tag)
+            return tag
 
-        await session.refresh(tag)
-
-        return tag
+        except IntegrityError as _:
+            raise AlreadyExists(Tag, title)
 
     async def delete(self, entity_id: int, session: AsyncSession) -> None:
-        tag = await self.find_by_id(entity_id)
+        tag = await self.find_by_id(entity_id, session)
 
-        session.delete(tag)
+        await session.delete(tag)
 
         await session.commit()
