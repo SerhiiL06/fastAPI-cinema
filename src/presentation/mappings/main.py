@@ -1,6 +1,8 @@
 from datetime import datetime
+
+from adaptix import P, Retort, dumper, validator
+
 from src.infrastructure.database.models.movie import Actor
-from adaptix import Retort, dumper, validator, P
 
 data_mapper = Retort(
     recipe=[

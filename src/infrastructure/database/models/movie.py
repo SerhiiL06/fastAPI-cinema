@@ -4,7 +4,6 @@ from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
-
 from .comments import Comment
 
 
@@ -78,3 +77,7 @@ class Movie(Base):
     )
     comments: Mapped[list["Comment"]] = relationship(back_populates="movie")
     country: Mapped["Country"] = relationship(back_populates="movies")
+
+    tags: Mapped[list["Tag"]] = relationship(
+        secondary="movies_tags", back_populates="movies"
+    )

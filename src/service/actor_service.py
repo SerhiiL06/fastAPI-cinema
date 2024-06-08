@@ -3,6 +3,7 @@ from datetime import datetime
 
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.infrastructure.database.models.movie import Actor
 from src.presentation.mappings.actor import CreateActorDto
 from src.presentation.mappings.main import data_mapper
