@@ -1,10 +1,14 @@
 from functools import wraps
 from typing import Callable
-
+import logging
 from src.presentation.exceptions.exc import PermissionDanied
 
 
 def check_role(allowed_roles: list):
+
+    if type(allowed_roles) not in [list, tuple]:
+        raise TypeError("Type of allowed roles must be a list or tuple")
+
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):

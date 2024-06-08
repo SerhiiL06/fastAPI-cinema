@@ -22,6 +22,8 @@ from src.service.impl.redis_service_impl import RedisServiceImpl
 from src.service.impl.token_service import TokenService
 from src.service.impl.user_service_impl import UserServiceImpl
 from src.service.password_service import PasswordService
+from src.repository.tag_repository import TagRepository
+from src.service.impl.tag_service_impl import TagServiceImpl
 
 
 class Container(containers.DeclarativeContainer):
@@ -40,17 +42,11 @@ class Container(containers.DeclarativeContainer):
     redis = providers.Singleton(RedisCore, url="redis://redis")
     redis_service = providers.Factory(RedisServiceImpl, redis.provided.connection)
 
-    # email_config = providers.Singleton(
-    #     ConnectionConfig,
-    #     config.email_username,
-    #     config.email_password,
-    #     config.email_port,
-    #     config.email_server,
-    # )
     email_core = providers.Singleton(FastMail, settings_factory.email_config)
     email_service = providers.Factory(EmailServiceimpl, email_core)
 
     image_service = providers.Factory(ImageService)
+
     cinema_repo = providers.Factory(CinemaRepository)
     cinema_service = providers.Factory(CinemaService, repo=cinema_repo)
 
@@ -62,6 +58,9 @@ class Container(containers.DeclarativeContainer):
 
     movie_repo = providers.Factory(MovieRepository, actor_repo, genre_repo)
     movie_service = providers.Factory(MovieServiceImpl, movie_repo, image_service)
+
+    tag_repo = providers.Factory(TagRepository)
+    tag_service = providers.Factory(TagServiceImpl, tag_repo)
 
     user_repo = providers.Factory(UserRepository)
     user_service = providers.Factory(UserServiceImpl, repo=user_repo)
