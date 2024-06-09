@@ -2,7 +2,11 @@ from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
-from .movie import Movie
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from .movie import Movie
 
 
 class Tag(Base):
@@ -10,9 +14,7 @@ class Tag(Base):
 
     title: Mapped[str] = mapped_column(String(50), unique=True)
 
-    movies: Mapped[list[Movie]] = relationship(
-        secondary="movies_tags", back_populates="tags"
-    )
+    movies = relationship("Movie", secondary="movies_tags", back_populates="tags")
 
 
 class MovieTags(Base):

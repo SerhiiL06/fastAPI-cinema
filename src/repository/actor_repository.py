@@ -3,10 +3,10 @@ from typing import Optional, Union
 from fastapi import HTTPException
 from sqlalchemy import delete, insert, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from src.infrastructure.database.models.base import Base
+
 from src.infrastructure.database.models.movie import Actor, Country
 
 from .abstract import AbstractRepository
@@ -22,7 +22,7 @@ class ActorRepository(AbstractRepository):
         return actors_list.scalars().all()
 
     async def find_by_id(
-        self, entity_id: Union[int, list[int]], session: AsyncResult
+        self, entity_id: Union[int, list[int]], session: AsyncSession
     ) -> Optional[Union[Actor, list[Actor]]]:
 
         q = select(Actor)
@@ -32,19 +32,19 @@ class ActorRepository(AbstractRepository):
         else:
             q = q.where(Actor.id == entity_id)
 
-        result: AsyncResult = await session.execute(q)
+        result = await session.execute(q)
 
         return result.scalars().all()
 
-    async def create(self, data: dict, session: AsyncSession) -> int:
-        q = insert(Actor).values(**data).returning(Actor.id)
-
+    async def create(self, actor: Actor, session: AsyncSession) -> int:
         try:
 
-            result = await session.execute(q)
+            session.add(actor)
             await session.commit()
 
-            return result.scalar()
+            await session.refresh(actor)
+
+            return actor.id
         except IntegrityError as e:
             raise HTTPException(400, "wrong country id")
 

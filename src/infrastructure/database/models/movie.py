@@ -5,6 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 from .comments import Comment
+from typing import TYPE_CHECKING
 
 
 class Genre(Base):
@@ -75,9 +76,7 @@ class Movie(Base):
     genres: Mapped[list["Genre"]] = relationship(
         secondary="movies_genre", back_populates="movies"
     )
-    comments: Mapped[list["Comment"]] = relationship(back_populates="movie")
+    comments: Mapped[list[Comment]] = relationship(back_populates="movie")
     country: Mapped["Country"] = relationship(back_populates="movies")
 
-    tags: Mapped[list["Tag"]] = relationship(
-        secondary="movies_tags", back_populates="movies"
-    )
+    tags = relationship("Tag", secondary="movies_tags", back_populates="movies")

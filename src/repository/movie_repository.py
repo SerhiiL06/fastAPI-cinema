@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
 from sqlalchemy.orm import joinedload
 
 from src.infrastructure.database.models.comments import Comment
-from src.infrastructure.database.models.movie import (Country, Genre, Movie,
-                                                      MovieGenre)
+from src.infrastructure.database.models.movie import Country, Genre, Movie, MovieGenre
+from src.infrastructure.database.models.tag import Tag, MovieTags
 from src.infrastructure.database.models.users import User
 
 from .abstract import AbstractRepository
@@ -81,6 +81,7 @@ class MovieRepository(CountryRepository, AbstractRepository):
             joinedload(Movie.country).load_only(Country.name),
             joinedload(Movie.genres),
             joinedload(Movie.actors),
+            joinedload(Movie.tags),
             joinedload(Movie.comments).options(
                 joinedload(Comment.author).load_only(User.nickname)
             ),
@@ -100,7 +101,7 @@ class MovieRepository(CountryRepository, AbstractRepository):
 
         return instance
 
-    async def create(self, data: dict, session) -> int:
+    async def create(self, data: dict, session: AsyncSession) -> int:
 
         country_name = data.pop("country_name")
         genres = data.pop("genres")
@@ -114,13 +115,13 @@ class MovieRepository(CountryRepository, AbstractRepository):
             duration=data.get("duration"),
         )
 
-        country = await self.country_by_title(country_name, session)
+        country = await self.find_by_name_or_iso(country_name, session)
         genres = await self.genre_repo.find_by_title(genres, session)
         actors = await self.actor_repo.find_by_id(actors, session)
 
         new_movie.country = country
 
-        new_movie = self.connect_relations(new_movie, genres, actors)
+        new_movie = self._connect_relations(new_movie, genres, actors)
 
         session.add(new_movie)
 
@@ -135,7 +136,7 @@ class MovieRepository(CountryRepository, AbstractRepository):
 
         instance = await session.get(Movie, entity_id)
 
-        instance = self.connect_relations(instance, genres, actors)
+        instance = self._connect_relations(instance, genres, actors)
 
         instance.title = data.get("title", instance.title)
         instance.description = data.get("description", instance.description)
@@ -157,7 +158,7 @@ class MovieRepository(CountryRepository, AbstractRepository):
         await session.commit()
 
     @classmethod
-    def connect_relations(
+    def _connect_relations(
         cls, instance: Movie, genres: Union[list, None], actors: Union[list, None]
     ) -> Movie:
 

@@ -19,7 +19,6 @@ class Config:
 
     @property
     def email_config(self) -> ConnectionConfig:
-        print(self._MAIL_PASSWORD)
         config = ConnectionConfig(
             MAIL_USERNAME=self._MAIL_USERNAME,
             MAIL_PASSWORD=self._MAIL_PASSWORD,

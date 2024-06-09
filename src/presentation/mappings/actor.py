@@ -7,5 +7,5 @@ class CreateActorDto:
     first_name: str
     last_name: str
 
-    birth_day: date
+    birth_day: str
     country_id: int
