@@ -9,7 +9,7 @@ data_mapper = Retort(
         dumper(datetime, lambda x: x.date()),
         validator(
             P[Actor].birth_day,
-            lambda x: x >= datetime.now().date(),
+            lambda x: x <= datetime.now().date(),
             "Birth day may be before today",
         ),
     ]

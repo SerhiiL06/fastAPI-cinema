@@ -1,12 +1,11 @@
-from src.presentation.dependency import Container
-from fastapi import APIRouter, Depends
-from src.service.impl.tag_service_impl import TagServiceImpl
 from dependency_injector.wiring import Provide, inject
-from src.common.factories import session_factory, current_user
-from src.common.permissions import check_role
-from fastapi import Body
-from src.presentation.mappings.tag import TagDto
+from fastapi import APIRouter, Body, Depends
 
+from src.common.factories import current_user, session_factory
+from src.common.permissions import check_role
+from src.presentation.dependency import Container
+from src.presentation.mappings.tag import TagDto
+from src.service.impl.tag_service_impl import TagServiceImpl
 
 tag_router = APIRouter(prefix="/tags", tags=["tags"])
 

@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, Union
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.infrastructure.database.models.tag import Tag
 
 

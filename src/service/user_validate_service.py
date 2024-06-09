@@ -1,7 +1,7 @@
 import re
 
-from email_validator import validate_email
 import email_validator
+from email_validator import validate_email
 from fastapi import HTTPException
 
 from src.service.password_service import PasswordService

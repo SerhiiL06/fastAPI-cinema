@@ -1,6 +1,6 @@
 from typing import Optional, Union
 
-from sqlalchemy import select, or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.database.models.movie import Country

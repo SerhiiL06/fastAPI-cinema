@@ -1,6 +1,7 @@
+import logging
 from functools import wraps
 from typing import Callable
-import logging
+
 from src.presentation.exceptions.exc import PermissionDanied
 
 

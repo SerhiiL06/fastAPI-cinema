@@ -6,7 +6,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-
 from src.infrastructure.database.models.movie import Actor, Country
 
 from .abstract import AbstractRepository

@@ -1,11 +1,13 @@
 from typing import Optional, Union
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.infrastructure.database.models.tag import Tag
+
 from .abstract import AbstractRepository
-from .exceptions.exc import DoesntExists, AlreadyExists
+from .exceptions.exc import AlreadyExists, DoesntExists
 
 
 class TagRepository(AbstractRepository):

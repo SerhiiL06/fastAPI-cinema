@@ -9,6 +9,7 @@ from src.repository.cinema_repository import CinemaRepository
 from src.repository.comment_repository import CommentRepository
 from src.repository.genre_repository import GenreRepository
 from src.repository.movie_repository import MovieRepository
+from src.repository.tag_repository import TagRepository
 from src.repository.user_repository import UserRepository
 from src.service.actor_service import ActorService
 from src.service.cinema_service import CinemaService
@@ -19,11 +20,10 @@ from src.service.impl.comment_service_impl import CommentServiceImpl
 from src.service.impl.email_service_impl import EmailServiceimpl
 from src.service.impl.movie_service_impl import MovieServiceImpl
 from src.service.impl.redis_service_impl import RedisServiceImpl
+from src.service.impl.tag_service_impl import TagServiceImpl
 from src.service.impl.token_service import TokenService
 from src.service.impl.user_service_impl import UserServiceImpl
 from src.service.password_service import PasswordService
-from src.repository.tag_repository import TagRepository
-from src.service.impl.tag_service_impl import TagServiceImpl
 
 
 class Container(containers.DeclarativeContainer):

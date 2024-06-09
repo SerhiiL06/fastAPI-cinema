@@ -1,6 +1,7 @@
 from dataclasses import asdict
 from datetime import datetime
 
+from adaptix.load_error import AggregateLoadError
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,7 +22,10 @@ class ActorService:
         return await self.repo.find_by_id(actor_id, session)
 
     async def add_actor(self, data: CreateActorDto, session: AsyncSession):
-        actor_data = data_mapper.load(asdict(data), Actor)
+        try:
+            actor_data = data_mapper.load(asdict(data), Actor)
+        except AggregateLoadError as e:
+            raise HTTPException(400, e.args[1][0].msg)
 
         actor_id = await self.repo.create(actor_data, session)
 

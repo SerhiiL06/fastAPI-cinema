@@ -7,16 +7,12 @@ from src.presentation.routers.auth_routers import auth_routers
 from src.presentation.routers.cinema_routers import cinema_router
 from src.presentation.routers.genre_routers import genre_router
 from src.presentation.routers.movie_routers import movies_router
-from src.presentation.routers.user_routers import users_router
 from src.presentation.routers.tag_routers import tag_router
-from src.repository.exceptions.exc import (
-    DoesntExists,
-    AlreadyExists,
-    doesnt_exists,
-    already_exists,
-)
-from src.service.middlewares.rate_limits import rate_limit_lifespan
+from src.presentation.routers.user_routers import users_router
+from src.repository.exceptions.exc import (AlreadyExists, DoesntExists,
+                                           already_exists, doesnt_exists)
 from src.service.exceptions.exc import ValidationError, validation_error
+from src.service.middlewares.rate_limits import rate_limit_lifespan
 
 
 def application():

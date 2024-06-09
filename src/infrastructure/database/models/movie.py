@@ -1,11 +1,11 @@
 from datetime import date, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
 from .comments import Comment
-from typing import TYPE_CHECKING
 
 
 class Genre(Base):
