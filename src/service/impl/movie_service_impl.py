@@ -4,15 +4,16 @@ from typing import Optional, Union
 
 from fastapi import HTTPException, UploadFile
 from slugify import slugify
-from src.infrastructure.database.models.movie import Movie
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.presentation.mappings.main import actor_mapper, movie_mapper
+
 from src.common.logic import clear_none
 from src.infrastructure.database.models.movie import Movie
-from src.presentation.mappings.movie import CreateMovieDto, UpdateMovieDto, MovieDto
+from src.presentation.mappings.movie import CreateMovieDto, UpdateMovieDto
 from src.repository.movie_repository import MovieRepository
 from src.service.image_service import ImageService
 from src.service.movie_service import MovieService
+
+from .redis_service_impl import RedisServiceImpl
 
 
 class MovieServiceImpl(MovieService):
@@ -29,6 +30,7 @@ class MovieServiceImpl(MovieService):
         page: int,
         session: AsyncSession,
     ) -> list[Movie]:
+
         return await self.repo.find_all(text, year, genre, page, session)
 
     async def add_movie(
@@ -56,9 +58,18 @@ class MovieServiceImpl(MovieService):
 
         return {"id": movie_id}
 
-    async def fetch_by_slug(self, slug: str, session: AsyncSession) -> Optional[Movie]:
+    async def fetch_by_slug(
+        self, slug: str, cache_service: RedisServiceImpl, session: AsyncSession
+    ) -> Optional[Movie]:
+
+        cache = await cache_service.get_movie_from_cache(slug)
+
+        if cache:
+            return {"movie": cache}
 
         movie = await self.repo.find_by_slug(slug, session)
+
+        await cache_service.set_movie_in_cache(slug, movie)
 
         return {"movie": movie}
 

@@ -5,16 +5,15 @@ from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.infrastructure.database.models.comments import Comment
-from src.infrastructure.database.models.movie import Country, Genre, Movie, MovieGenre
-from src.infrastructure.database.models.tag import MovieTags, Tag
+from src.infrastructure.database.models.movie import Country, Genre, Movie
 from src.infrastructure.database.models.users import User
 
 from .abstract import AbstractRepository
 from .actor_repository import ActorRepository
 from .country_repository import CountryRepository
-from .tag_repository import TagRepository
 from .exceptions.exc import DoesntExists
 from .genre_repository import GenreRepository
+from .tag_repository import TagRepository
 
 
 class MovieRepository(CountryRepository, AbstractRepository):

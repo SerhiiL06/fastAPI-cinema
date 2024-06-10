@@ -11,6 +11,7 @@ from src.presentation.mappings.comment import CreateCommentDto
 from src.presentation.mappings.movie import CreateMovieDto, UpdateMovieDto
 from src.service.impl.comment_service_impl import CommentServiceImpl
 from src.service.impl.movie_service_impl import MovieServiceImpl
+from src.service.impl.redis_service_impl import RedisServiceImpl
 
 movies_router = APIRouter(tags=["movie"])
 
@@ -72,9 +73,10 @@ async def retrive_movie_by_id(
 async def retrive_movie_by_slug(
     movie_slug: str,
     session: session_factory,
+    cache_service: RedisServiceImpl = Depends(Provide[Container.redis_service]),
     service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
 ):
-    return await service.fetch_by_slug(movie_slug, session)
+    return await service.fetch_by_slug(movie_slug, cache_service, session)
 
 
 @movies_router.patch("/movies/{movie_id}")
