@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -49,9 +48,7 @@ class Actor(Base):
     birth_day: Mapped[date]
     country_id: Mapped[int] = mapped_column(ForeignKey("countries.id"))
 
-    movies: Mapped[list["Movie"]] = relationship(
-        "Movie", secondary="movies_actors", back_populates="actors"
-    )
+    movies = relationship("Movie", secondary="movies_actors", back_populates="actors")
     country = relationship(Country, back_populates="actors")
 
 

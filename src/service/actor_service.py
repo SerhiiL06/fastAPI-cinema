@@ -1,14 +1,14 @@
-from dataclasses import asdict
 from datetime import datetime
 
 from adaptix.load_error import AggregateLoadError
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.database.models.movie import Actor
-from src.presentation.mappings.actor import CreateActorDto
-from src.presentation.mappings.main import data_mapper
+from src.presentation.mappings.actor import ActorDto, CreateActorDto
+from src.presentation.mappings.converters import dto_to_actor
+from src.presentation.mappings.main import actor_mapper
 from src.repository.actor_repository import ActorRepository
+from src.service.exceptions.exc import ValidationError
 
 
 class ActorService:
@@ -16,17 +16,18 @@ class ActorService:
         self.repo = repository
 
     async def fetch_all(self, session: AsyncSession):
-        return await self.repo.find_all(session)
+        actors = await self.repo.find_all(session)
+
+        return actor_mapper.dump(actors, list[ActorDto])
 
     async def fetch_by_id(self, actor_id: int, session: AsyncSession):
         return await self.repo.find_by_id(actor_id, session)
 
     async def add_actor(self, data: CreateActorDto, session: AsyncSession):
-        try:
-            actor_data = data_mapper.load(asdict(data), Actor)
-        except AggregateLoadError as e:
-            raise HTTPException(400, e.args[1][0].msg)
 
+        actor_data = dto_to_actor(data)
+
+        self._validate_actor(actor_data)
         actor_id = await self.repo.create(actor_data, session)
 
         return {"id": actor_id}
@@ -35,9 +36,12 @@ class ActorService:
         await self.repo.delete(actor_id, session)
 
     @classmethod
-    def _actor_validate(cls, actor: CreateActorDto) -> CreateActorDto:
+    def _validate_actor(cls, instance: Actor):
 
-        if actor.birth_day >= datetime.now().date():
-            raise HTTPException(400, {"error": "incorrect date"})
+        errors = {}
 
-        return actor
+        if instance.birth_day < datetime.now().date():
+            errors["date"] = "error"
+
+        if errors:
+            raise ValidationError(errors)

@@ -37,13 +37,12 @@ class ActorRepository(AbstractRepository):
 
     async def create(self, actor: Actor, session: AsyncSession) -> int:
         try:
-
             session.add(actor)
             await session.commit()
 
             await session.refresh(actor)
 
-            return actor.id
+            return actor
         except IntegrityError as e:
             raise HTTPException(400, "wrong country id")
 
