@@ -1,13 +1,14 @@
 from datetime import datetime
 
-from adaptix import Chain, P, Retort, dumper, validator
+from adaptix import P, Retort, dumper, validator
 from adaptix.conversion import allow_unlinked_optional
 
-from src.infrastructure.database.models.movie import Actor
+from src.infrastructure.database.models.movie import Actor, Movie
 
 data_mapper = Retort(
     recipe=[
         dumper(datetime, lambda x: x.date()),
+        dumper(str, lambda x: x.lower()),
     ]
 )
 
@@ -26,3 +27,6 @@ actor_mapper = data_mapper.extend(
         ),
     ]
 )
+
+
+movie_mapper = data_mapper.extend(recipe=[allow_unlinked_optional(P[Movie].slug)])

@@ -19,13 +19,19 @@ class TagRepository(AbstractRepository):
 
         return tags.scalars().all()
 
-    async def find_by_id(self, entity_id: int, session: AsyncSession) -> Optional[Tag]:
+    async def find_by_id(
+        self, entity_id: Union[int, list[int]], session: AsyncSession
+    ) -> Optional[Tag]:
+
+        if isinstance(entity_id, list):
+            return await self._find_by_list_values(entity_id, session)
+
         return await self._find_by_field(entity_id, session)
 
     async def find_by_title(self, entity_title: str, session: AsyncSession):
         return await self._find_by_field(entity_title, session)
 
-    async def _find_by_field(self, field_info: Union[str, int], session: AsyncSession):
+    async def _find_by_field(self, field_info: Union[int, str], session: AsyncSession):
         q = select(Tag)
 
         if isinstance(field_info, str):
@@ -42,6 +48,16 @@ class TagRepository(AbstractRepository):
             raise DoesntExists(Tag, field_info)
 
         return result
+
+    async def _find_by_list_values(
+        self, values: list[int], session: AsyncSession
+    ) -> list[Tag]:
+
+        q = select(Tag).where(Tag.id.in_(values))
+
+        result = await session.execute(q)
+
+        return result.scalars().all()
 
     async def create(self, data: Tag, session: AsyncSession) -> int:
 

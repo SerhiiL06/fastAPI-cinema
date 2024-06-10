@@ -29,7 +29,7 @@ class CountryRepository:
 
         result = await session.execute(q)
 
-        return result.scalars().one_or_none()
+        return result.scalars().first()
 
     async def find_country_by_id(
         self, country_id: int, session: AsyncSession

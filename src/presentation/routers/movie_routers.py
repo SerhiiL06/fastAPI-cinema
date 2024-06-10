@@ -26,7 +26,7 @@ async def get_movie_list(
     genre: str = Query(None),
 ):
 
-    return await service.fetch_all(page, session, text, year, genre)
+    return await service.fetch_all(text, year, genre, page, session)
 
 
 @movies_router.post("/movies")
@@ -41,6 +41,7 @@ async def create_movie(
     country_name: str = Body(),
     genres: list[str] = Body(),
     actors: list[int] = Body(),
+    tags: list[int] = Body(),
     service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
 ):
     dto = CreateMovieDto(
@@ -51,6 +52,7 @@ async def create_movie(
         country_name,
         genres[0].split(","),
         actors,
+        tags,
     )
     return await service.add_movie(dto, image, session)
 

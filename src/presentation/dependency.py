@@ -56,11 +56,11 @@ class Container(containers.DeclarativeContainer):
     genre_repo = providers.Factory(GenreRepository)
     genre_service = providers.Factory(GenreService, repo=genre_repo)
 
-    movie_repo = providers.Factory(MovieRepository, actor_repo, genre_repo)
-    movie_service = providers.Factory(MovieServiceImpl, movie_repo, image_service)
-
     tag_repo = providers.Factory(TagRepository)
     tag_service = providers.Factory(TagServiceImpl, tag_repo)
+
+    movie_repo = providers.Factory(MovieRepository, actor_repo, genre_repo, tag_repo)
+    movie_service = providers.Factory(MovieServiceImpl, movie_repo, image_service)
 
     user_repo = providers.Factory(UserRepository)
     user_service = providers.Factory(UserServiceImpl, repo=user_repo)

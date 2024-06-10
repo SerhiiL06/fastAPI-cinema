@@ -2,49 +2,50 @@ from typing import Optional, Union
 
 from sqlalchemy import delete, extract, select
 from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from src.infrastructure.database.models.comments import Comment
-from src.infrastructure.database.models.movie import (Country, Genre, Movie,
-                                                      MovieGenre)
+from src.infrastructure.database.models.movie import Country, Genre, Movie, MovieGenre
 from src.infrastructure.database.models.tag import MovieTags, Tag
 from src.infrastructure.database.models.users import User
 
 from .abstract import AbstractRepository
 from .actor_repository import ActorRepository
 from .country_repository import CountryRepository
+from .tag_repository import TagRepository
 from .exceptions.exc import DoesntExists
 from .genre_repository import GenreRepository
 
 
 class MovieRepository(CountryRepository, AbstractRepository):
 
-    def __init__(self, actor_repo, genres_repo) -> None:
+    def __init__(self, actor_repo, genres_repo, tags_repo) -> None:
         self.actor_repo: ActorRepository = actor_repo
         self.genre_repo: GenreRepository = genres_repo
+        self.tag_repo: TagRepository = tags_repo
 
     async def find_all(
         self,
-        page: int,
-        session: AsyncSession,
         text: Optional[None],
         year: Optional[int],
         genre: Optional[str],
+        page: int,
+        session: AsyncSession,
     ) -> list[Movie]:
 
+        print(page)
         offset = (page - 1) * 5
+
         q = (
-            select(
-                Movie.id,
-                Movie.title,
-                Movie.slug,
-                extract("YEAR", Movie.release_date).label("year"),
-                Genre.title.label("genre"),
-                Country.name.label("country"),
+            select(Movie)
+            .options(
+                joinedload(
+                    Movie.country,
+                ),
+                selectinload(Movie.actors),
+                selectinload(Movie.genres),
+                selectinload(Movie.tags),
             )
-            .join(Country, Movie.country_id == Country.id)
-            .join(MovieGenre, Movie.id == MovieGenre.movie_id)
-            .join(Genre, Genre.id == MovieGenre.genre_id)
             .where(Movie.is_publish)
             .order_by(Movie.created_at.desc())
             .offset(offset)
@@ -60,9 +61,9 @@ class MovieRepository(CountryRepository, AbstractRepository):
         if genre:
             q = q.where(Genre.title.icontains(genre))
 
-        result: AsyncResult = await session.execute(q)
+        result = await session.execute(q)
 
-        return result.mappings().all()
+        return result.scalars().all()
 
     async def find_by_id(
         self, entity_id: int, session: AsyncSession
@@ -102,27 +103,24 @@ class MovieRepository(CountryRepository, AbstractRepository):
 
         return instance
 
-    async def create(self, data: dict, session: AsyncSession) -> int:
+    async def create(
+        self,
+        instance_data: Movie,
+        genres: list,
+        actors: list,
+        country: str,
+        tags: list,
+        session: AsyncSession,
+    ) -> int:
 
-        country_name = data.pop("country_name")
-        genres = data.pop("genres")
-        actors = data.pop("actors")
-
-        new_movie = Movie(
-            title=data.get("title"),
-            slug=data.get("slug"),
-            description=data.get("description"),
-            release_date=data.get("release_date"),
-            duration=data.get("duration"),
-        )
-
-        country = await self.find_by_name_or_iso(country_name, session)
+        country = await self.find_by_name_or_iso(country, session)
         genres = await self.genre_repo.find_by_title(genres, session)
         actors = await self.actor_repo.find_by_id(actors, session)
+        tags = await self.tag_repo.find_by_id(tags, session)
 
-        new_movie.country = country
+        instance_data.country = country
 
-        new_movie = self._connect_relations(new_movie, genres, actors)
+        new_movie = self._connect_relations(instance_data, genres, actors, tags)
 
         session.add(new_movie)
 
@@ -160,7 +158,11 @@ class MovieRepository(CountryRepository, AbstractRepository):
 
     @classmethod
     def _connect_relations(
-        cls, instance: Movie, genres: Union[list, None], actors: Union[list, None]
+        cls,
+        instance: Movie,
+        genres: Optional[list],
+        actors: Optional[list],
+        tags: Optional[list],
     ) -> Movie:
 
         if genres:
@@ -170,5 +172,8 @@ class MovieRepository(CountryRepository, AbstractRepository):
         if actors is not None:
             for a in actors:
                 instance.actors.append(a)
+        if tags is not None:
+            for t in tags:
+                instance.tags.append(t)
 
         return instance
