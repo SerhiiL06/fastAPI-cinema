@@ -1,14 +1,15 @@
 from typing import Optional, Union
 
 from fastapi import HTTPException
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
-from src.infrastructure.database.models.movie import Actor, Country
+from src.infrastructure.database.models.movie import Actor, Country, Movie
 
 from .abstract import AbstractRepository
+from .exceptions.exc import DoesntExists
 
 
 class ActorRepository(AbstractRepository):
@@ -24,12 +25,31 @@ class ActorRepository(AbstractRepository):
         self, entity_id: Union[int, list[int]], session: AsyncSession
     ) -> Optional[Union[Actor, list[Actor]]]:
 
-        q = select(Actor)
-
         if type(entity_id) in [list, tuple]:
-            q = q.where(Actor.id.in_(entity_id))
-        else:
-            q = q.where(Actor.id == entity_id)
+            return await self._find_by_many_ids(entity_id, session)
+
+        q = (
+            select(Actor)
+            .where(Actor.id == entity_id)
+            .options(
+                selectinload(Actor.movies).load_only(
+                    Movie.title, Movie.slug, Movie.image, Movie.release_date
+                ),
+                joinedload(Actor.country),
+            )
+        )
+
+        result = await session.execute(q)
+
+        actor = result.scalars().one_or_none()
+
+        if actor is None:
+            raise DoesntExists(Actor, entity_id)
+
+        return actor
+
+    async def _find_by_many_ids(self, ids: list[int], session: AsyncSession):
+        q = select(Actor).where(Actor.id.in_(ids))
 
         result = await session.execute(q)
 

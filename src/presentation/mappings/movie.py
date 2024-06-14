@@ -1,7 +1,16 @@
 from dataclasses import dataclass
 from datetime import date
+from typing import TYPE_CHECKING
 
-from .actor import ActorDto, CountryDto
+from .country import CountryDto
+
+
+@dataclass
+class ShortMovieDto:
+    id: int
+    title: str
+    slug: str
+    image: str
 
 
 @dataclass
@@ -33,6 +42,8 @@ class UpdateMovieDto:
 
 @dataclass
 class MovieDto:
+    from .actor import ActorDto
+
     id: int
     title: str
     slug: str

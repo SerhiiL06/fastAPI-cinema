@@ -8,7 +8,6 @@ from src.infrastructure.database.models.movie import Actor, Movie
 data_mapper = Retort(
     recipe=[
         dumper(datetime, lambda x: x.date()),
-        dumper(str, lambda x: x.lower()),
     ]
 )
 

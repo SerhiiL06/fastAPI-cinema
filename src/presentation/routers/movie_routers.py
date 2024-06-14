@@ -18,7 +18,7 @@ movies_router = APIRouter(tags=["movie"])
 
 @movies_router.get("/movies")
 @inject
-async def get_movie_list(
+async def movie_list(
     session: session_factory,
     service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
     page: int = Query(1, gt=0),
@@ -58,17 +58,7 @@ async def create_movie(
     return await service.add_movie(dto, image, session)
 
 
-@movies_router.get("/movies/{movie_id}")
-@inject
-async def retrive_movie_by_id(
-    movie_id: int,
-    session: session_factory,
-    service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
-):
-    return await service.fetch_by_id(movie_id, session)
-
-
-@movies_router.get("/movies/find-by-slug/{movie_slug}")
+@movies_router.get("/movies/{movie_slug}")
 @inject
 async def retrive_movie_by_slug(
     movie_slug: str,

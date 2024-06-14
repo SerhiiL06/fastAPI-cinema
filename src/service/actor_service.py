@@ -4,7 +4,8 @@ from adaptix.load_error import AggregateLoadError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.database.models.movie import Actor
-from src.presentation.mappings.actor import ActorDto, CreateActorDto
+from src.presentation.mappings.actor import (ActorDetailDto, ActorDto,
+                                             CreateActorDto)
 from src.presentation.mappings.converters import dto_to_actor
 from src.presentation.mappings.main import actor_mapper
 from src.repository.actor_repository import ActorRepository
@@ -21,7 +22,9 @@ class ActorService:
         return actor_mapper.dump(actors, list[ActorDto])
 
     async def fetch_by_id(self, actor_id: int, session: AsyncSession):
-        return await self.repo.find_by_id(actor_id, session)
+        actor = await self.repo.find_by_id(actor_id, session)
+
+        return actor_mapper.dump(actor, ActorDetailDto)
 
     async def add_actor(self, data: CreateActorDto, session: AsyncSession):
 
