@@ -6,6 +6,7 @@ from fastapi import APIRouter, Body, Depends, File, Query, UploadFile
 
 from src.common.factories import current_user, session_factory
 from src.common.permissions import check_role
+from src.common.utils import order_types
 from src.presentation.dependency import Container
 from src.presentation.mappings.comment import CreateCommentDto
 from src.presentation.mappings.movie import CreateMovieDto, UpdateMovieDto
@@ -25,9 +26,10 @@ async def movie_list(
     text: str = Query(None),
     year: int = Query(None),
     genre: str = Query(None),
+    ordering: str = Query("new", regex=order_types),
 ):
 
-    return await service.fetch_all(text, year, genre, page, session)
+    return await service.fetch_all(session, text, year, genre, ordering, page)
 
 
 @movies_router.post("/movies")
@@ -96,6 +98,17 @@ async def update_movie(
     )
 
     return await service.update_movie(movie_id, data, session, image)
+
+
+@movies_router.get("/movies/genre/{genre_slug}")
+@inject
+async def fetch_by_genre(
+    session: session_factory,
+    genre_slug: str,
+    page: int = Query(1, gt=0),
+    service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
+):
+    return await service.fetch_all(genre=genre_slug, page=page, session=session)
 
 
 @movies_router.post("/movies/{movie_id}/comment")

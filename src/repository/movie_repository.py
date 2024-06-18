@@ -1,6 +1,6 @@
 from typing import Optional, Union
 
-from sqlalchemy import delete, extract, select
+from sqlalchemy import Select, delete, extract, select
 from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -28,11 +28,11 @@ class MovieRepository(CountryRepository, AbstractRepository):
         text: Optional[None],
         year: Optional[int],
         genre: Optional[str],
+        ordering: Optional[str],
         page: int,
         session: AsyncSession,
     ) -> list[Movie]:
 
-        print(page)
         offset = (page - 1) * 5
 
         q = (
@@ -46,7 +46,6 @@ class MovieRepository(CountryRepository, AbstractRepository):
                 selectinload(Movie.tags),
             )
             .where(Movie.is_publish)
-            .order_by(Movie.created_at.desc())
             .offset(offset)
             .limit(5)
         )
@@ -58,7 +57,9 @@ class MovieRepository(CountryRepository, AbstractRepository):
             q = q.where(extract("YEAR", Movie.release_date) == year)
 
         if genre:
-            q = q.where(Genre.title.icontains(genre))
+            q = q.join(Movie.genres).where(Genre.title.icontains(genre))
+
+        q = q.order_by(self._order_by(ordering))
 
         result = await session.execute(q)
 
@@ -154,6 +155,15 @@ class MovieRepository(CountryRepository, AbstractRepository):
 
         await session.execute(q)
         await session.commit()
+
+    @classmethod
+    def _order_by(cls, value: str = "new") -> Select:
+        q = {
+            "new": Movie.created_at.desc(),
+            "rate": ...,
+        }
+
+        return q.get(value)
 
     @classmethod
     def _connect_relations(

@@ -24,14 +24,15 @@ class MovieServiceImpl(MovieService):
 
     async def fetch_all(
         self,
-        text: Optional[str],
-        year: Optional[int],
-        genre: Optional[str],
-        page: int,
         session: AsyncSession,
+        text: Optional[str] = None,
+        year: Optional[int] = None,
+        genre: Optional[str] = None,
+        ordering: Optional[str] = None,
+        page: int = 1,
     ) -> list[Movie]:
 
-        return await self.repo.find_all(text, year, genre, page, session)
+        return await self.repo.find_all(text, year, genre, ordering, page, session)
 
     async def add_movie(
         self, data: CreateMovieDto, image: UploadFile, session: AsyncSession
