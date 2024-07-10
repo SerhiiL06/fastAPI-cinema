@@ -9,6 +9,7 @@ from src.infrastructure.database.models.base import Base
 from src.infrastructure.database.models.cinema import Cinema, City
 from src.infrastructure.database.models.comments import Comment
 from src.infrastructure.database.models.movie import *
+from src.infrastructure.database.models.rating import MovieRating
 from src.infrastructure.database.models.tag import MovieTags, Tag
 from src.infrastructure.database.models.users import User
 from src.presentation.dependency import Container
