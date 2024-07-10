@@ -1,13 +1,13 @@
 from typing import Optional, Union
 
-from sqlalchemy import Select, delete, extract, select, and_, update, func
+from sqlalchemy import Select, and_, delete, extract, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.infrastructure.database.models.comments import Comment
 from src.infrastructure.database.models.movie import Country, Genre, Movie
-from src.infrastructure.database.models.users import User
 from src.infrastructure.database.models.rating import MovieRating
+from src.infrastructure.database.models.users import User
 
 from .abstract import AbstractRepository
 from .actor_repository import ActorRepository

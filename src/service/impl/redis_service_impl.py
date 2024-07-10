@@ -22,6 +22,14 @@ class RedisServiceImpl(RedisService):
 
         return json.loads(data) if data else data
 
+    async def get_movie_rating(self, movie_slug: str) -> Optional[float]:
+
+        key = f"rating:{movie_slug}"
+
+        rating = await self._instance.get(key)
+
+        return float(rating) if rating else None
+
     async def set_movie_in_cache(self, movie_slug: int, data: Movie) -> None:
 
         movie_key = f"movie:{movie_slug}"
