@@ -1,6 +1,6 @@
 from typing import Optional, Union
 
-from sqlalchemy import Select, delete, extract, select, and_, exists, update, func
+from sqlalchemy import Select, delete, extract, select, and_, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
@@ -180,14 +180,21 @@ class MovieRepository(CountryRepository, AbstractRepository):
         await session.commit()
 
     async def get_movie_rating(
-        self, movie_id: int, session: AsyncSession
-    ) -> Optional[float]:
+        self, criteria: Union[int, str], session: AsyncSession
+    ) -> Select:
+        if isinstance(criteria, str):
+            q = (
+                select(func.avg(MovieRating.rating))
+                .join(Movie, MovieRating.movie_id == Movie.id)
+                .where(Movie.slug == criteria)
+            )
 
-        q = select(func.avg(MovieRating.rating)).where(MovieRating.movie_id == movie_id)
+        else:
+            q = select(func.avg(MovieRating.rating)).where(Movie.id == criteria)
 
-        rating = await session.execute(q)
+        result = await session.execute(q)
 
-        return rating.scalar_one_or_none()
+        return result.scalar_one()
 
     @classmethod
     def _order_by(cls, value: str = "new") -> Select:

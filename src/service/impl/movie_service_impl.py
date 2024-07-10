@@ -12,7 +12,6 @@ from src.presentation.mappings.movie import CreateMovieDto, UpdateMovieDto
 from src.repository.movie_repository import MovieRepository
 from src.service.image_service import ImageService
 from src.service.movie_service import MovieService
-
 from .redis_service_impl import RedisServiceImpl
 
 
@@ -70,10 +69,9 @@ class MovieServiceImpl(MovieService):
 
         movie = await self.repo.find_by_slug(slug, session)
 
-        rating = await self.repo.get_movie_rating(movie.id, session)
+        movie.rating = await self.repo.get_movie_rating(slug, session)
 
-        movie["rating"] = rating
-        await cache_service.set_movie_in_cache(slug, movie)
+        # await cache_service.set_movie_in_cache(slug, movie)
 
         return {"movie": movie}
 
