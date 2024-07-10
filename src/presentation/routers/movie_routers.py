@@ -111,6 +111,19 @@ async def fetch_by_genre(
     return await service.fetch_all(genre=genre_slug, page=page, session=session)
 
 
+@movies_router.post("/movies/{movie_id}/rating")
+@check_role(["regular"])
+@inject
+async def leave_rating(
+    user: current_user,
+    movie_id: int,
+    rating: int,
+    session: session_factory,
+    service: MovieServiceImpl = Depends(Provide[Container.movie_service]),
+):
+    return await service.rating_movie(rating, movie_id, user.get("user_id"), session)
+
+
 @movies_router.post("/movies/{movie_id}/comment")
 @inject
 async def comment_movie(

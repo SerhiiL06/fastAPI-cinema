@@ -25,3 +25,7 @@ class MovieService(ABC):
     @abstractmethod
     def add_movie(self, data: dict) -> int:
         pass
+
+    @abstractmethod
+    def rating_movie(self, entity_id: int, user_id: int, rating: int) -> dict:
+        pass

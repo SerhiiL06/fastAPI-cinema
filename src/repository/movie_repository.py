@@ -1,12 +1,13 @@
 from typing import Optional, Union
 
-from sqlalchemy import Select, delete, extract, select
-from sqlalchemy.ext.asyncio import AsyncResult, AsyncSession
+from sqlalchemy import Select, delete, extract, select, and_, exists, update, func
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 
 from src.infrastructure.database.models.comments import Comment
 from src.infrastructure.database.models.movie import Country, Genre, Movie
 from src.infrastructure.database.models.users import User
+from src.infrastructure.database.models.rating import MovieRating
 
 from .abstract import AbstractRepository
 from .actor_repository import ActorRepository
@@ -155,6 +156,38 @@ class MovieRepository(CountryRepository, AbstractRepository):
 
         await session.execute(q)
         await session.commit()
+
+    async def create_rating(
+        self, rating: int, entity_id: int, user_id: int, session: AsyncSession
+    ) -> None:
+
+        exist_criteria = and_(
+            MovieRating.movie_id == entity_id, MovieRating.user_id == user_id
+        )
+
+        q = select(MovieRating).where(exist_criteria)
+
+        check_result = await session.execute(q)
+
+        if check_result.one_or_none() is not None:
+
+            update_q = update(MovieRating).where(exist_criteria).values(rating=rating)
+            await session.execute(update_q)
+
+        else:
+            session.add(MovieRating(movie_id=entity_id, user_id=user_id, rating=rating))
+
+        await session.commit()
+
+    async def get_movie_rating(
+        self, movie_id: int, session: AsyncSession
+    ) -> Optional[float]:
+
+        q = select(func.avg(MovieRating.rating)).where(MovieRating.movie_id == movie_id)
+
+        rating = await session.execute(q)
+
+        return rating.scalar_one_or_none()
 
     @classmethod
     def _order_by(cls, value: str = "new") -> Select:

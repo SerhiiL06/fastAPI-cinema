@@ -70,6 +70,9 @@ class MovieServiceImpl(MovieService):
 
         movie = await self.repo.find_by_slug(slug, session)
 
+        rating = await self.repo.get_movie_rating(movie.id, session)
+
+        movie["rating"] = rating
         await cache_service.set_movie_in_cache(slug, movie)
 
         return {"movie": movie}
@@ -117,6 +120,17 @@ class MovieServiceImpl(MovieService):
 
     async def search(self, search_data: dict) -> list[Movie]:
         return super().search(search_data)
+
+    async def rating_movie(
+        self, rating: int, movie_id: int, user_id: int, session: AsyncSession
+    ) -> dict:
+
+        if rating not in range(1, 6):
+            raise HTTPException(400, "Rating must be between 1 and 5")
+
+        await self.repo.create_rating(rating, movie_id, user_id, session)
+
+        return {"ok": "rating leave"}
 
     @classmethod
     def generate_slug(self, title: str, movie_id: int, year: date) -> str:
